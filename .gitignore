@@ -22,3 +22,7 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Personal local workflow scripts — machine-specific, not shared with the team.
+/pullmain.bat
+/pushraa.bat

@@ -29,9 +29,11 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
+        'google_id',
         'role',
         'phone',
         'status',
+        'email_verified_at',
     ];
 
     /**
@@ -70,5 +72,14 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isActive(): bool
     {
         return $this->status === 'active';
+    }
+
+    /**
+     * True for an account created (or linked) via "Sign in with Google"
+     * that has never set its own password.
+     */
+    public function hasNoPassword(): bool
+    {
+        return is_null($this->password);
     }
 }

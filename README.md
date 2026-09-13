@@ -47,13 +47,47 @@ bookings, payments and reports come in a later pass.
 4. `php artisan serve` (or use the Laragon vhost for this folder, e.g.
    `http://greyon.info`)
 
+## Google Sign-In setup
+
+Guests can log in with a Google account instead of a password
+(`app/Http/Controllers/Auth/GoogleController.php`). Admins don't get
+this — there's no public admin registration at all, Google or
+otherwise.
+
+1. `composer require laravel/socialite`
+2. In [Google Cloud Console](https://console.cloud.google.com/) →
+   APIs & Services → Credentials, on your OAuth 2.0 Client ID, add
+   this as an **Authorized redirect URI** (must match exactly):
+   `http://greyon.info/auth/google/callback`
+3. Put your Client ID/Secret in `.env` (already has the keys, just
+   fill in the values — never commit `.env`, it's gitignored):
+   ```
+   GOOGLE_CLIENT_ID=your-client-id
+   GOOGLE_CLIENT_SECRET=your-client-secret
+   GOOGLE_REDIRECT_URI=http://greyon.info/auth/google/callback
+   ```
+4. `php artisan migrate` — adds a nullable, unique `google_id` column
+   to `users` and relaxes `password` to nullable (a Google-only
+   signup never sets one).
+5. Open `http://greyon.info/auth/google/redirect` **in a real browser
+   tab**, not Bruno — this is Google's own consent-screen redirect,
+   which a single Bruno request can't drive. After you approve it,
+   Google redirects back to `/auth/google/callback`, which logs you
+   in and hands back the same session cookie every other endpoint
+   here uses; from that point on Bruno's cookie jar (or the browser
+   itself) is authenticated same as a normal `/login`.
+
+Linking behavior: if the Google account's email already belongs to an
+existing `users` row, that row gets `google_id` attached (no
+duplicate account) rather than being blocked.
+
 Seeded accounts (all password `password`):
 
-| Role    | Email               | Login endpoint     |
-|---------|---------------------|---------------------|
-| admin   | admin@greyon.test   | POST /admin/login   |
-| manager | manager@greyon.test | POST /login         |
-| guest   | guest@greyon.test   | POST /login         |
+| Role    | Email               | Login endpoint    |
+| ------- | ------------------- | ----------------- |
+| admin   | admin@greyon.test   | POST /admin/login |
+| manager | manager@greyon.test | POST /login       |
+| guest   | guest@greyon.test   | POST /login       |
 
 ## Testing from Postman
 
@@ -74,6 +108,7 @@ your local URL differs.
 ## Endpoints
 
 **User (`users` table, guard `web`)**
+
 - `POST /register` — public. Always creates a `guest`; ignores any
   `role` the client sends.
 - `POST /login` — public.
@@ -90,7 +125,17 @@ ever. Same shape as above, prefixed `/admin` (`/admin/login`,
 `/admin/forgot-password`, `/admin/reset-password`,
 `/admin/verify-email`, `/admin/confirm-password`, `/admin/password`).
 
+**Google Sign-In (guests only, `web` guard)**
+
+- `GET /auth/google/redirect` — public. Sends the browser to Google's
+  consent screen. This is a browser redirect, not a plain JSON
+  request — open it in an actual browser tab, not Bruno.
+- `GET /auth/google/callback` — public. Google redirects back here;
+  matches an existing account by `google_id`, then by email (linking
+  it if found), or creates a new `guest` with no password set.
+
 **App (placeholders for the next pass)**
+
 - `GET /dashboard` — `auth` + `role:guest` (guest only).
 - `GET /manager` — `auth` + `role:manager`.
 

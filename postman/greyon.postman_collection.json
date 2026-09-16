@@ -1,15 +1,70 @@
 {
   "info": {
     "name": "Greyon Hotel Booking API",
-    "description": "Routes organized from web.php, auth.php, admin.php. Session-cookie auth (Breeze-style, no Sanctum) — turn cookies on (on by default), log in once under Admin > Auth or Front > Auth, and every other request authenticates automatically via the shared cookie jar.",
+    "description": "Routes organized from web.php, auth.php, admin.php, developer.php. Session-cookie auth (Breeze-style, no Sanctum) across three guards (web/admin/developer) — turn cookies on (default), log in once under Developer > Auth, Admin > Auth or Front > Auth, and every other request in that guard authenticates automatically via the shared cookie jar. What an admin can do is entirely determined by the packages a developer assigns them (Developer > Admins > Update Admin — Packages) — see README.md's Architecture section.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "base_url", "value": "http://greyon.info" }
+    {
+      "key": "base_url",
+      "value": "http://greyon.info"
+    },
+    {
+      "key": "admin_id",
+      "value": ""
+    },
+    {
+      "key": "role_id",
+      "value": ""
+    },
+    {
+      "key": "feature_id",
+      "value": ""
+    },
+    {
+      "key": "permission_id",
+      "value": ""
+    },
+    {
+      "key": "package_id",
+      "value": ""
+    },
+    {
+      "key": "admin_package_id",
+      "value": "1"
+    },
+    {
+      "key": "location_package_id",
+      "value": "2"
+    },
+    {
+      "key": "hotel_package_id",
+      "value": "3"
+    },
+    {
+      "key": "location_id",
+      "value": "1"
+    },
+    {
+      "key": "hotel_id",
+      "value": "1"
+    },
+    {
+      "key": "room_type_id",
+      "value": "1"
+    },
+    {
+      "key": "rate_plan_id",
+      "value": "1"
+    },
+    {
+      "key": "starter_package_id",
+      "value": "4"
+    }
   ],
   "item": [
     {
-      "name": "Admin",
+      "name": "Developer",
       "item": [
         {
           "name": "Auth",
@@ -19,14 +74,24 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  { "key": "Content-Type", "value": "application/json" },
-                  { "key": "Accept", "value": "application/json" }
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
                 ],
-                "url": "{{base_url}}/admin/login",
+                "url": "{{base_url}}/developer/login",
                 "body": {
                   "mode": "raw",
-                  "options": { "raw": { "language": "json" } },
-                  "raw": "{\n    \"email\": \"admin@greyon.test\",\n    \"password\": \"password\"\n}"
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"email\": \"dev@greyon.com.kh\",\n    \"password\": \"password\"\n}"
                 }
               }
             },
@@ -34,8 +99,13 @@
               "name": "Logout",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Accept", "value": "application/json" }],
-                "url": "{{base_url}}/admin/logout"
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/logout"
               }
             },
             {
@@ -43,14 +113,24 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  { "key": "Content-Type", "value": "application/json" },
-                  { "key": "Accept", "value": "application/json" }
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
                 ],
-                "url": "{{base_url}}/admin/forgot-password",
+                "url": "{{base_url}}/developer/forgot-password",
                 "body": {
                   "mode": "raw",
-                  "options": { "raw": { "language": "json" } },
-                  "raw": "{\n    \"email\": \"admin@greyon.test\"\n}"
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"email\": \"dev@greyon.com.kh\"\n}"
                 }
               }
             },
@@ -59,14 +139,24 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  { "key": "Content-Type", "value": "application/json" },
-                  { "key": "Accept", "value": "application/json" }
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
                 ],
-                "url": "{{base_url}}/admin/reset-password",
+                "url": "{{base_url}}/developer/reset-password",
                 "body": {
                   "mode": "raw",
-                  "options": { "raw": { "language": "json" } },
-                  "raw": "{\n    \"token\": \"paste-token-from-storage/logs/laravel.log\",\n    \"email\": \"admin@greyon.test\",\n    \"password\": \"newpassword\",\n    \"password_confirmation\": \"newpassword\"\n}"
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"token\": \"paste-token-from-storage/logs/laravel.log\",\n    \"email\": \"dev@greyon.com.kh\",\n    \"password\": \"newpassword\",\n    \"password_confirmation\": \"newpassword\"\n}"
                 }
               }
             },
@@ -75,13 +165,23 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  { "key": "Content-Type", "value": "application/json" },
-                  { "key": "Accept", "value": "application/json" }
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
                 ],
-                "url": "{{base_url}}/admin/confirm-password",
+                "url": "{{base_url}}/developer/confirm-password",
                 "body": {
                   "mode": "raw",
-                  "options": { "raw": { "language": "json" } },
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
                   "raw": "{\n    \"password\": \"password\"\n}"
                 }
               }
@@ -91,13 +191,1150 @@
               "request": {
                 "method": "PUT",
                 "header": [
-                  { "key": "Content-Type", "value": "application/json" },
-                  { "key": "Accept", "value": "application/json" }
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/password",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"current_password\": \"password\",\n    \"password\": \"newpassword\",\n    \"password_confirmation\": \"newpassword\"\n}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Current Developer",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/developer/me"
+          }
+        },
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/developer/dashboard"
+          }
+        },
+        {
+          "name": "Roles",
+          "item": [
+            {
+              "name": "List Roles",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/roles"
+              }
+            },
+            {
+              "name": "Get Role",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/roles/{{role_id}}"
+              }
+            },
+            {
+              "name": "Create Role",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/roles",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"name\": \"support\",\n    \"description\": \"Read-only support seat\",\n    \"scope\": \"none\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update Role",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/roles/{{role_id}}",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"description\": \"Updated description\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete Role",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/roles/{{role_id}}"
+              }
+            },
+            {
+              "name": "Create Role — District Supervisor (dynamic scope demo)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/roles",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"name\": \"district_supervisor\",\n    \"description\": \"A brand-new custom role, never referenced by name anywhere in the codebase \\u2014 proves scope-driven access control. See TESTING.md section 10.\",\n    \"scope\": \"location\"\n}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Features",
+          "item": [
+            {
+              "name": "List Features",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/features"
+              }
+            },
+            {
+              "name": "Get Feature",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/features/{{feature_id}}"
+              }
+            },
+            {
+              "name": "Create Feature",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/features",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"key\": \"reports\",\n    \"label\": \"Reports\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update Feature",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/features/{{feature_id}}",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"label\": \"Updated label\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete Feature",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/features/{{feature_id}}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Permissions",
+          "item": [
+            {
+              "name": "List Permissions",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/permissions"
+              }
+            },
+            {
+              "name": "Get Permission",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/permissions/{{permission_id}}"
+              }
+            },
+            {
+              "name": "Create Permission",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/permissions",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"key\": \"hotels_publish\",\n    \"label\": \"Publish hotels\",\n    \"featureKey\": \"hotels\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Create Permission — unknown featureKey (expect 422)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/permissions",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"key\": \"scratch_permission\",\n    \"label\": \"Scratch\",\n    \"featureKey\": \"not_a_real_feature\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update Permission",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/permissions/{{permission_id}}",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"label\": \"Updated label\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete Permission",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/permissions/{{permission_id}}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Packages",
+          "item": [
+            {
+              "name": "List Packages",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/packages"
+              }
+            },
+            {
+              "name": "Get Package",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/packages/{{package_id}}"
+              }
+            },
+            {
+              "name": "Get Package — Admin · Starter (view limits)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/packages/{{starter_package_id}}"
+              }
+            },
+            {
+              "name": "Create Package — Manager Booking Pro",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/packages",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"name\": \"Manager \\u00b7 Booking Pro\",\n    \"description\": \"Location manager with rates\",\n    \"priceNote\": \"Pro\",\n    \"roles\": [\n        \"manager\"\n    ],\n    \"featureKeys\": [\n        \"dashboard\",\n        \"hotels\",\n        \"rooms\",\n        \"rates\",\n        \"bookings\"\n    ]\n}"
+                }
+              }
+            },
+            {
+              "name": "Create Package — with permissionKeys",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/packages",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"name\": \"Manager \\u00b7 Booking Pro (with locations content access)\",\n    \"description\": \"Same as Manager \\u00b7 Booking Pro, plus the locations_list permission\",\n    \"roles\": [\n        \"manager\"\n    ],\n    \"featureKeys\": [\n        \"dashboard\",\n        \"hotels\",\n        \"rooms\",\n        \"rates\",\n        \"bookings\",\n        \"locations\"\n    ],\n    \"permissionKeys\": [\n        \"locations_list\"\n    ]\n}"
+                }
+              }
+            },
+            {
+              "name": "Create Package — unknown permissionKeys (expect 400)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/packages",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"name\": \"Bad Permission Package\",\n    \"roles\": [\n        \"admin\"\n    ],\n    \"permissionKeys\": [\n        \"not_a_real_permission\"\n    ]\n}"
+                }
+              }
+            },
+            {
+              "name": "Create Package — with limits (capped)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/packages",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"name\": \"Manager \\u00b7 Booking Pro (capped)\",\n    \"description\": \"Same as Manager \\u00b7 Booking Pro, but capped to 2 locations\",\n    \"roles\": [\n        \"manager\"\n    ],\n    \"featureKeys\": [\n        \"dashboard\",\n        \"hotels\",\n        \"rooms\",\n        \"rates\",\n        \"bookings\"\n    ],\n    \"limits\": [\n        {\n            \"resourceKey\": \"locations\",\n            \"maxCount\": 2\n        }\n    ]\n}"
+                }
+              }
+            },
+            {
+              "name": "Create Package — duplicate resourceKey in limits (expect 400)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/packages",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"name\": \"Bad Limits Package\",\n    \"roles\": [\n        \"admin\"\n    ],\n    \"limits\": [\n        {\n            \"resourceKey\": \"locations\",\n            \"maxCount\": 2\n        },\n        {\n            \"resourceKey\": \"locations\",\n            \"maxCount\": 5\n        }\n    ]\n}"
+                }
+              }
+            },
+            {
+              "name": "Update Package",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/packages/{{package_id}}",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"description\": \"Updated description\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Duplicate Package",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/packages/{{package_id}}/duplicate"
+              }
+            },
+            {
+              "name": "Delete Package",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/packages/{{package_id}}"
+              }
+            },
+            {
+              "name": "Create Package — District Supervisor (dynamic scope demo)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/packages",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"name\": \"District Supervisor Pack\",\n    \"roles\": [\n        \"district_supervisor\"\n    ],\n    \"featureKeys\": [\n        \"dashboard\",\n        \"locations\",\n        \"hotels\"\n    ]\n}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admins",
+          "item": [
+            {
+              "name": "List Admins",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/admins"
+              }
+            },
+            {
+              "name": "Get Admin",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/admins/{{admin_id}}"
+              }
+            },
+            {
+              "name": "Create Admin — manager",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/admins",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"name\": \"Phnom Penh Manager 2\",\n    \"email\": \"pp2@greyon.com.kh\",\n    \"password\": \"password\",\n    \"packages\": [\n        {\n            \"packageId\": \"{{location_package_id}}\",\n            \"locationIds\": [\n                1\n            ]\n        }\n    ]\n}"
+                }
+              }
+            },
+            {
+              "name": "Update Admin",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/admins/{{admin_id}}",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"name\": \"Updated Name\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update Admin — Packages",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/admins/{{admin_id}}/packages",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"packages\": [\n        {\n            \"packageId\": \"{{location_package_id}}\",\n            \"locationIds\": [\n                1\n            ]\n        }\n    ]\n}"
+                }
+              }
+            },
+            {
+              "name": "Update Admin — Packages (two independently-scoped packages)",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/admins/{{admin_id}}/packages",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"packages\": [\n        {\n            \"packageId\": \"{{location_package_id}}\",\n            \"locationIds\": [\n                1\n            ]\n        },\n        {\n            \"packageId\": \"{{hotel_package_id}}\",\n            \"hotelIds\": [\n                2\n            ]\n        }\n    ]\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete Admin",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/admins/{{admin_id}}"
+              }
+            },
+            {
+              "name": "Create Admin — district supervisor (dynamic scope demo, expect 422 w/o locationIds)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/admins",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"name\": \"Siem Reap Supervisor\",\n    \"email\": \"srsup@greyon.com.kh\",\n    \"password\": \"password\",\n    \"packages\": [\n        {\n            \"packageId\": \"{{package_id}}\"\n        }\n    ]\n}"
+                }
+              }
+            },
+            {
+              "name": "Create Admin — district supervisor with locationIds (dynamic scope demo)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/developer/admins",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"name\": \"Siem Reap Supervisor\",\n    \"email\": \"srsup@greyon.com.kh\",\n    \"password\": \"password\",\n    \"packages\": [\n        {\n            \"packageId\": \"{{package_id}}\",\n            \"locationIds\": [\n                2\n            ]\n        }\n    ]\n}"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Auth",
+          "item": [
+            {
+              "name": "Login — admin",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/login",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"email\": \"admin@greyon.com.kh\",\n    \"password\": \"password\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Login — pp (manager, Phnom Penh)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/login",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"email\": \"pp@greyon.com.kh\",\n    \"password\": \"password\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Login — sr (manager, Siem Reap)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/login",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"email\": \"sr@greyon.com.kh\",\n    \"password\": \"password\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Login — hotel (hotel_admin, Riverside)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/login",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"email\": \"hotel@greyon.com.kh\",\n    \"password\": \"password\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Login — angkor (hotel_admin, Angkor)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/login",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"email\": \"angkor@greyon.com.kh\",\n    \"password\": \"password\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Login — srsup (district_supervisor, dynamic scope demo)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/login",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"email\": \"srsup@greyon.com.kh\",\n    \"password\": \"password\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Login — starter (Admin · Starter, capped)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/login",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"email\": \"starter@greyon.com.kh\",\n    \"password\": \"password\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Logout",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/logout"
+              }
+            },
+            {
+              "name": "Forgot Password",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/forgot-password",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"email\": \"admin@greyon.com.kh\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Reset Password",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/reset-password",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"token\": \"paste-token-from-storage/logs/laravel.log\",\n    \"email\": \"admin@greyon.com.kh\",\n    \"password\": \"newpassword\",\n    \"password_confirmation\": \"newpassword\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Confirm Password",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/confirm-password",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"password\": \"password\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update Password",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
                 ],
                 "url": "{{base_url}}/admin/password",
                 "body": {
                   "mode": "raw",
-                  "options": { "raw": { "language": "json" } },
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
                   "raw": "{\n    \"current_password\": \"password\",\n    \"password\": \"newpassword\",\n    \"password_confirmation\": \"newpassword\"\n}"
                 }
               }
@@ -108,7 +1345,12 @@
           "name": "Current Admin",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Accept", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
             "url": "{{base_url}}/admin/me"
           }
         },
@@ -116,8 +1358,636 @@
           "name": "Dashboard",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Accept", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
             "url": "{{base_url}}/admin/dashboard"
+          }
+        },
+        {
+          "name": "Locations",
+          "item": [
+            {
+              "name": "List Locations",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/locations"
+              }
+            },
+            {
+              "name": "Get Location",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/locations/{{location_id}}"
+              }
+            },
+            {
+              "name": "Create Location",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/locations",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"name\": \"Sihanoukville\",\n    \"slug\": \"sihanoukville\",\n    \"description\": \"Coastal city with beaches and an island getaway.\",\n    \"status\": \"published\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Create Location — as Starter (log in as starter first)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/locations",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"name\": \"Starter Loc\",\n    \"slug\": \"starter-loc\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Create Location — as Starter, 4th (expect 403 limit reached)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/locations",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"name\": \"Starter Loc 4\",\n    \"slug\": \"starter-loc-4\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update Location",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/locations/{{location_id}}",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"description\": \"Updated description.\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update Location — Status (expect 403 w/o locations_publish)",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/locations/{{location_id}}",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"status\": \"archived\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update Location — SEO (expect 403 w/o locations_seo)",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/locations/{{location_id}}",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"seoTitle\": \"New SEO title\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete Location",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/locations/{{location_id}}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Hotels",
+          "item": [
+            {
+              "name": "List Hotels",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/hotels"
+              }
+            },
+            {
+              "name": "Get Hotel",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/hotels/{{hotel_id}}"
+              }
+            },
+            {
+              "name": "Create Hotel",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/hotels",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"locationId\": 1,\n    \"name\": \"Test Hotel\",\n    \"slug\": \"pp-test-hotel\",\n    \"shortDescription\": \"A test property for Postman runs.\",\n    \"coordinates\": {\n        \"lat\": 11.56,\n        \"lng\": 104.93\n    },\n    \"status\": \"draft\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Create Hotel — as Starter, 1st on a location (log in as starter first)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/hotels",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"locationId\": 3,\n    \"name\": \"Starter Hotel 1\",\n    \"slug\": \"starter-hotel-1\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Create Hotel — as Starter, 2nd on same location (expect 403 limit reached)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/hotels",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"locationId\": 3,\n    \"name\": \"Starter Hotel 2\",\n    \"slug\": \"starter-hotel-2\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update Hotel",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/hotels/{{hotel_id}}",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"phone\": \"+855 23 555 0199\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete Hotel",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/hotels/{{hotel_id}}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Room Types",
+          "item": [
+            {
+              "name": "List Room Types",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/room-types"
+              }
+            },
+            {
+              "name": "Get Room Type",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/room-types/{{room_type_id}}"
+              }
+            },
+            {
+              "name": "Create Room Type",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/room-types",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"hotelId\": \"{{hotel_id}}\",\n    \"name\": \"Family Suite\",\n    \"slug\": \"family-suite\",\n    \"description\": \"A two-room suite for families.\",\n    \"bedType\": \"King + Twin\",\n    \"roomSize\": \"45 sqm\",\n    \"maxAdults\": 2,\n    \"maxChildren\": 2,\n    \"maxGuests\": 4,\n    \"amenities\": [\n        \"Air conditioning\",\n        \"Minibar\"\n    ],\n    \"baseInventory\": 5,\n    \"status\": \"draft\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update Room Type",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/room-types/{{room_type_id}}",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"baseInventory\": 6,\n    \"status\": \"published\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete Room Type",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/room-types/{{room_type_id}}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Rate Plans",
+          "item": [
+            {
+              "name": "List Rate Plans",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/rate-plans"
+              }
+            },
+            {
+              "name": "Get Rate Plan",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/rate-plans/{{rate_plan_id}}"
+              }
+            },
+            {
+              "name": "Create Rate Plan",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/rate-plans",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"roomTypeId\": \"{{room_type_id}}\",\n    \"name\": \"Weekend Special\",\n    \"description\": \"Discounted weekend stay.\",\n    \"mealBenefit\": \"Breakfast included\",\n    \"cancellationPolicy\": \"Free cancellation until 24h before check-in\",\n    \"basePrice\": 45.0,\n    \"taxPercent\": 10,\n    \"serviceFeePercent\": 5,\n    \"status\": \"draft\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update Rate Plan",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/rate-plans/{{rate_plan_id}}",
+                "body": {
+                  "mode": "raw",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
+                  "raw": "{\n    \"basePrice\": 68.5,\n    \"status\": \"published\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete Rate Plan",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{base_url}}/admin/rate-plans/{{rate_plan_id}}"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Public",
+      "item": [
+        {
+          "name": "List Locations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/locations"
+          }
+        },
+        {
+          "name": "Get Location by slug",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/locations/siem-reap"
+          }
+        },
+        {
+          "name": "List Hotels",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/hotels"
+          }
+        },
+        {
+          "name": "List Hotels — by location",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/hotels?locationSlug=siem-reap"
+          }
+        },
+        {
+          "name": "List Hotels — featured",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/hotels?featured=1"
+          }
+        },
+        {
+          "name": "Get Hotel by slug",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/hotels/riverside"
           }
         }
       ]
@@ -135,7 +2005,12 @@
                   "name": "Verify Email Notice",
                   "request": {
                     "method": "GET",
-                    "header": [{ "key": "Accept", "value": "application/json" }],
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
                     "url": "{{base_url}}/verify-email"
                   }
                 },
@@ -143,7 +2018,12 @@
                   "name": "Resend Verification Email",
                   "request": {
                     "method": "POST",
-                    "header": [{ "key": "Accept", "value": "application/json" }],
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
                     "url": "{{base_url}}/email/verification-notification"
                   }
                 },
@@ -152,13 +2032,23 @@
                   "request": {
                     "method": "POST",
                     "header": [
-                      { "key": "Content-Type", "value": "application/json" },
-                      { "key": "Accept", "value": "application/json" }
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
                     ],
                     "url": "{{base_url}}/confirm-password",
                     "body": {
                       "mode": "raw",
-                      "options": { "raw": { "language": "json" } },
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      },
                       "raw": "{\n    \"password\": \"password\"\n}"
                     }
                   }
@@ -172,7 +2062,12 @@
                   "name": "Dashboard",
                   "request": {
                     "method": "GET",
-                    "header": [{ "key": "Accept", "value": "application/json" }],
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
                     "url": "{{base_url}}/dashboard"
                   }
                 }
@@ -185,7 +2080,12 @@
                   "name": "Dashboard",
                   "request": {
                     "method": "GET",
-                    "header": [{ "key": "Accept", "value": "application/json" }],
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
                     "url": "{{base_url}}/manager"
                   }
                 }
@@ -196,13 +2096,23 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  { "key": "Content-Type", "value": "application/json" },
-                  { "key": "Accept", "value": "application/json" }
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
                 ],
                 "url": "{{base_url}}/register",
                 "body": {
                   "mode": "raw",
-                  "options": { "raw": { "language": "json" } },
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
                   "raw": "{\n    \"name\": \"Jane Doe\",\n    \"email\": \"jane@example.com\",\n    \"password\": \"password\",\n    \"password_confirmation\": \"password\",\n    \"phone\": \"012345678\"\n}"
                 }
               }
@@ -212,13 +2122,23 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  { "key": "Content-Type", "value": "application/json" },
-                  { "key": "Accept", "value": "application/json" }
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
                 ],
                 "url": "{{base_url}}/login",
                 "body": {
                   "mode": "raw",
-                  "options": { "raw": { "language": "json" } },
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
                   "raw": "{\n    \"email\": \"guest@greyon.test\",\n    \"password\": \"password\"\n}"
                 }
               }
@@ -227,7 +2147,12 @@
               "name": "Login with Google (open in browser, not Bruno)",
               "request": {
                 "method": "GET",
-                "header": [{ "key": "Accept", "value": "application/json" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
                 "url": "{{base_url}}/auth/google/redirect",
                 "description": "This is a browser redirect flow (Google's consent screen), so Bruno's Send button can't complete it. Paste {{base_url}}/auth/google/redirect into an actual browser tab instead; Google sends it back to /auth/google/callback, which logs the guest in and hands back the same cookie session every other request here uses."
               }
@@ -236,7 +2161,12 @@
               "name": "Logout",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Accept", "value": "application/json" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
                 "url": "{{base_url}}/logout"
               }
             },
@@ -245,13 +2175,23 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  { "key": "Content-Type", "value": "application/json" },
-                  { "key": "Accept", "value": "application/json" }
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
                 ],
                 "url": "{{base_url}}/forgot-password",
                 "body": {
                   "mode": "raw",
-                  "options": { "raw": { "language": "json" } },
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
                   "raw": "{\n    \"email\": \"guest@greyon.test\"\n}"
                 }
               }
@@ -261,13 +2201,23 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  { "key": "Content-Type", "value": "application/json" },
-                  { "key": "Accept", "value": "application/json" }
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
                 ],
                 "url": "{{base_url}}/reset-password",
                 "body": {
                   "mode": "raw",
-                  "options": { "raw": { "language": "json" } },
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
                   "raw": "{\n    \"token\": \"paste-token-from-storage/logs/laravel.log\",\n    \"email\": \"guest@greyon.test\",\n    \"password\": \"newpassword\",\n    \"password_confirmation\": \"newpassword\"\n}"
                 }
               }
@@ -277,13 +2227,23 @@
               "request": {
                 "method": "PUT",
                 "header": [
-                  { "key": "Content-Type", "value": "application/json" },
-                  { "key": "Accept", "value": "application/json" }
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
                 ],
                 "url": "{{base_url}}/password",
                 "body": {
                   "mode": "raw",
-                  "options": { "raw": { "language": "json" } },
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  },
                   "raw": "{\n    \"current_password\": \"password\",\n    \"password\": \"newpassword\",\n    \"password_confirmation\": \"newpassword\"\n}"
                 }
               }
@@ -292,7 +2252,12 @@
               "name": "Current User",
               "request": {
                 "method": "GET",
-                "header": [{ "key": "Accept", "value": "application/json" }],
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
                 "url": "{{base_url}}/user"
               }
             }

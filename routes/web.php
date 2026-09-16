@@ -25,6 +25,8 @@ Route::get('/', function () {
 
 require __DIR__.'/auth.php';
 require __DIR__.'/admin.php';
+require __DIR__.'/developer.php';
+require __DIR__.'/public.php';
 
 // Guest only — matches the architecture doc's route table (section 7),
 // which lists /dashboard as guest-level access, not "any authenticated

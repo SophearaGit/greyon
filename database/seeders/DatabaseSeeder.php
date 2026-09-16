@@ -15,6 +15,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(DeveloperSeeder::class);
+        $this->call(RoleSeeder::class);
+        $this->call(FeatureSeeder::class);
+        $this->call(PermissionSeeder::class);
+        $this->call(PackageSeeder::class);
+        $this->call(LocationSeeder::class);
+        $this->call(HotelSeeder::class);
+        $this->call(RoomTypeSeeder::class);
+        $this->call(RatePlanSeeder::class);
         $this->call(AdminSeeder::class);
 
         // A guest customer you can log in with straight away.

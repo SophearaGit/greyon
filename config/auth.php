@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Admin;
+use App\Models\Developer;
 use App\Models\User;
 
 return [
@@ -48,14 +49,24 @@ return [
             'driver' => 'session',
             'provider' => 'admins',
         ],
+
+        'developer' => [
+            'driver' => 'session',
+            'provider' => 'developers',
+        ],
     ],
 
     /*
-    | These two guards are the whole story here — `web` (backed by the
-    | `users` provider below) authenticates guest/manager accounts,
-    | `admin` (backed by `admins`) authenticates admin accounts, and
-    | routes/auth.php + routes/admin.php protect their routes with
-    | `auth`/`guest` and `auth:admin`/`guest:admin` respectively.
+    | Three guards, three tables: `web` (→ `users`) authenticates
+    | guest/manager accounts, `admin` (→ `admins`) authenticates
+    | admin-panel accounts (what they can do comes from the packages
+    | they're assigned — see App\Services\AccessService), and
+    | `developer` (→ `developers`) authenticates platform developers,
+    | who bypass the permission matrix entirely and manage
+    | roles/features/packages for everyone else. routes/auth.php,
+    | routes/admin.php and routes/developer.php protect their routes
+    | with `auth`/`guest`, `auth:admin`/`guest:admin` and
+    | `auth:developer`/`guest:developer` respectively.
     */
 
     /*
@@ -84,6 +95,11 @@ return [
         'admins' => [
             'driver' => 'eloquent',
             'model' => Admin::class,
+        ],
+
+        'developers' => [
+            'driver' => 'eloquent',
+            'model' => Developer::class,
         ],
     ],
 
@@ -117,6 +133,13 @@ return [
         'admins' => [
             'provider' => 'admins',
             'table' => 'admin_password_reset_tokens',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+
+        'developers' => [
+            'provider' => 'developers',
+            'table' => 'developer_password_reset_tokens',
             'expire' => 60,
             'throttle' => 60,
         ],

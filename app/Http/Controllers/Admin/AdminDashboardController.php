@@ -11,7 +11,7 @@ class AdminDashboardController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $admin = $request->user()->load(['packages.roles', 'packages.features']);
+        $admin = $request->user()->load(['packages.roles', 'packages.features', 'packages.permissions']);
 
         return response()->json(['admin' => new AdminResource($admin)]);
     }

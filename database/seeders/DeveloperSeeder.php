@@ -14,7 +14,7 @@ class DeveloperSeeder extends Seeder
 {
     public function run(): void
     {
-        Developer::firstOrCreate(
+        Developer::updateOrCreate(
             ['email' => 'dev@greyon.com.kh'],
             [
                 'name' => 'Platform Developer',

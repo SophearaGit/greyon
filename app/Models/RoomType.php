@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * A room category under a Hotel ("Deluxe King", "Standard Twin", ...)
@@ -49,5 +50,21 @@ class RoomType extends Model
     public function hotel(): BelongsTo
     {
         return $this->belongsTo(Hotel::class);
+    }
+
+    /**
+     * @return HasMany<RatePlan, $this>
+     */
+    public function ratePlans(): HasMany
+    {
+        return $this->hasMany(RatePlan::class);
+    }
+
+    /**
+     * @return HasMany<Availability, $this>
+     */
+    public function availabilities(): HasMany
+    {
+        return $this->hasMany(Availability::class);
     }
 }

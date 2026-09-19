@@ -1,0 +1,1 @@
+{"statusCode":422,"message":"The email field is required. (and 1 more error)","error":"Unprocessable Content","errors":{"email":["The email field is required."],"password":["The password field is required."]}}

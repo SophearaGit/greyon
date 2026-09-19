@@ -38,7 +38,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  */
 class AdminController extends Controller
 {
-    private const PACKAGE_EAGER_LOAD = ['packages.roles', 'packages.features'];
+    private const PACKAGE_EAGER_LOAD = ['packages.roles', 'packages.features', 'packages.permissions'];
 
     public function index(): JsonResponse
     {

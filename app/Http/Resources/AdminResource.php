@@ -42,6 +42,9 @@ class AdminResource extends JsonResource
                     'featureKeys' => $package->relationLoaded('features')
                         ? $package->features->pluck('key')->values()
                         : [],
+                    'permissionKeys' => $package->relationLoaded('permissions')
+                        ? $package->permissions->pluck('key')->values()
+                        : [],
                     'locationIds' => $package->pivot->location_ids ?? [],
                     'hotelIds' => $package->pivot->hotel_ids ?? [],
                 ])->values()

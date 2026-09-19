@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Services\BookingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,13 +19,20 @@ use Illuminate\Support\Facades\Auth;
  */
 class AuthenticatedSessionController extends Controller
 {
+    public function __construct(private readonly BookingService $bookings) {}
+
     public function store(LoginRequest $request): JsonResponse
     {
         $request->authenticate();
 
         $request->session()->regenerate();
 
-        return response()->json(['user' => Auth::guard('web')->user()]);
+        $user = Auth::guard('web')->user();
+        if ($user) {
+            $this->bookings->claimForUser($user);
+        }
+
+        return response()->json(['user' => $user]);
     }
 
     public function destroy(Request $request): JsonResponse

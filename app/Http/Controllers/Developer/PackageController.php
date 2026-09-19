@@ -45,7 +45,10 @@ class PackageController extends Controller
 {
     public function index(): JsonResponse
     {
-        $packages = Package::withCount('admins')->with('roles')->orderBy('name')->get();
+        $packages = Package::withCount('admins')
+            ->with(['roles', 'features', 'permissions', 'limits'])
+            ->orderBy('name')
+            ->get();
 
         return response()->json(['packages' => PackageResource::collection($packages)]);
     }

@@ -7,76 +7,46 @@ use App\Models\RoomType;
 use Illuminate\Database\Seeder;
 
 /**
- * 4 rate plans across the 3 seeded room types — Riverside's Deluxe
- * King gets 2 (proving one room type can hold several plans), the
- * other two room types get 1 each. Must run after RoomTypeSeeder.
+ * One flexible + one saver plan per room type.
  */
 class RatePlanSeeder extends Seeder
 {
     public function run(): void
     {
-        $riversideDeluxeKing = RoomType::where('hotel_id', function ($query) {
-            $query->select('id')->from('hotels')->where('slug', 'riverside');
-        })->where('slug', 'deluxe-king')->firstOrFail();
+        foreach (RoomType::query()->with('hotel')->orderBy('id')->get() as $room) {
+            $base = match ($room->slug) {
+                'deluxe-king' => 65.00,
+                'standard-twin' => 42.00,
+                'family-suite' => 95.00,
+                'garden-view' => 55.00,
+                default => 50.00,
+            };
 
-        $riversideStandardTwin = RoomType::where('hotel_id', function ($query) {
-            $query->select('id')->from('hotels')->where('slug', 'riverside');
-        })->where('slug', 'standard-twin')->firstOrFail();
+            RatePlan::updateOrCreate(
+                ['room_type_id' => $room->id, 'name' => 'Flexible Rate'],
+                [
+                    'description' => 'Breakfast included, free cancellation.',
+                    'meal_benefit' => 'Breakfast included',
+                    'cancellation_policy' => 'Free cancellation until 24h before check-in',
+                    'base_price' => $base,
+                    'tax_percent' => 10,
+                    'service_fee_percent' => 5,
+                    'status' => 'published',
+                ]
+            );
 
-        $angkorDeluxeKing = RoomType::where('hotel_id', function ($query) {
-            $query->select('id')->from('hotels')->where('slug', 'angkor');
-        })->where('slug', 'deluxe-king')->firstOrFail();
-
-        RatePlan::firstOrCreate(
-            ['room_type_id' => $riversideDeluxeKing->id, 'name' => 'Flexible Rate'],
-            [
-                'description' => 'Breakfast included, free cancellation.',
-                'meal_benefit' => 'Breakfast included',
-                'cancellation_policy' => 'Free cancellation until 24h before check-in',
-                'base_price' => 65.00,
-                'tax_percent' => 10,
-                'service_fee_percent' => 5,
-                'status' => 'published',
-            ]
-        );
-
-        RatePlan::firstOrCreate(
-            ['room_type_id' => $riversideDeluxeKing->id, 'name' => 'Non-Refundable Rate'],
-            [
-                'description' => 'Lower price, no changes or cancellations.',
-                'meal_benefit' => null,
-                'cancellation_policy' => 'Non-refundable',
-                'base_price' => 55.00,
-                'tax_percent' => 10,
-                'service_fee_percent' => 5,
-                'status' => 'published',
-            ]
-        );
-
-        RatePlan::firstOrCreate(
-            ['room_type_id' => $riversideStandardTwin->id, 'name' => 'Standard Rate'],
-            [
-                'description' => 'Breakfast included.',
-                'meal_benefit' => 'Breakfast included',
-                'cancellation_policy' => 'Free cancellation until 48h before check-in',
-                'base_price' => 40.00,
-                'tax_percent' => 10,
-                'service_fee_percent' => 5,
-                'status' => 'published',
-            ]
-        );
-
-        RatePlan::firstOrCreate(
-            ['room_type_id' => $angkorDeluxeKing->id, 'name' => 'Standard Rate'],
-            [
-                'description' => 'Breakfast included.',
-                'meal_benefit' => 'Breakfast included',
-                'cancellation_policy' => 'Free cancellation until 24h before check-in',
-                'base_price' => 70.00,
-                'tax_percent' => 10,
-                'service_fee_percent' => 5,
-                'status' => 'published',
-            ]
-        );
+            RatePlan::updateOrCreate(
+                ['room_type_id' => $room->id, 'name' => 'Saver Rate'],
+                [
+                    'description' => 'Lower price, limited changes.',
+                    'meal_benefit' => null,
+                    'cancellation_policy' => 'Non-refundable',
+                    'base_price' => round($base * 0.85, 2),
+                    'tax_percent' => 10,
+                    'service_fee_percent' => 5,
+                    'status' => 'published',
+                ]
+            );
+        }
     }
 }

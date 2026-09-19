@@ -17,7 +17,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        $admin = Auth::guard('admin')->user()->load(['packages.roles', 'packages.features']);
+        $admin = Auth::guard('admin')->user()->load(['packages.roles', 'packages.features', 'packages.permissions']);
 
         return response()->json(['admin' => new AdminResource($admin)]);
     }
@@ -34,7 +34,7 @@ class AuthenticatedSessionController extends Controller
 
     public function show(Request $request): JsonResponse
     {
-        $admin = Auth::guard('admin')->user()->load(['packages.roles', 'packages.features']);
+        $admin = Auth::guard('admin')->user()->load(['packages.roles', 'packages.features', 'packages.permissions']);
 
         return response()->json(['admin' => new AdminResource($admin)]);
     }

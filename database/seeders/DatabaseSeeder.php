@@ -25,6 +25,9 @@ class DatabaseSeeder extends Seeder
         $this->call(RoomTypeSeeder::class);
         $this->call(RatePlanSeeder::class);
         $this->call(AdminSeeder::class);
+        $this->call(MediaSeeder::class);
+        $this->call(NewsSeeder::class);
+        $this->call(EnquirySeeder::class);
 
         // A guest customer you can log in with straight away.
         User::factory()->create([
@@ -39,5 +42,8 @@ class DatabaseSeeder extends Seeder
             'email' => 'manager@greyon.test',
             'role' => 'manager',
         ]);
+
+        // Bookings after users exist so guest@greyon.test can own seed stays.
+        $this->call(BookingSeeder::class);
     }
 }

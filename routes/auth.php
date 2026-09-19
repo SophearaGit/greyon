@@ -34,9 +34,14 @@ Route::middleware('guest')->group(function () {
     Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
 });
 
+// Ticket exchange must work whether or not a prior web session exists.
+Route::post('/auth/google/exchange', [GoogleController::class, 'exchange'])->name('google.exchange');
+
 Route::middleware('auth')->group(function () {
     Route::get('/user', [AuthenticatedSessionController::class, 'show'])->name('user.show');
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+    Route::get('/my/bookings', [\App\Http\Controllers\MyBookingController::class, 'index'])->name('my.bookings');
+    Route::get('/my/bookings/{reference}', [\App\Http\Controllers\MyBookingController::class, 'show'])->name('my.bookings.show');
 
     Route::get('/verify-email', EmailVerificationPromptController::class)->name('verification.notice');
     Route::get('/verify-email/{id}/{hash}', VerifyEmailController::class)

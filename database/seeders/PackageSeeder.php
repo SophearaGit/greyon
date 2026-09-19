@@ -9,63 +9,101 @@ use App\Models\Role;
 use Illuminate\Database\Seeder;
 
 /**
- * 4 system packages an admin can be assigned (see AdminSeeder). System
- * packages can't be deleted (App\Http\Controllers\Developer\PackageController).
+ * Packages grant features + every permission under those features.
+ * Site shape: 3 locations max, 3 hotels per location (Admin · Starter).
  */
 class PackageSeeder extends Seeder
 {
     public function run(): void
     {
+        $allAdminFeatures = Feature::where('category', 'admin')->pluck('key')->all();
+        $allPublicFeatures = Feature::where('category', 'public')->pluck('key')->all();
+        $fullFeatures = [...$allAdminFeatures, ...$allPublicFeatures];
+
+        // Org admins get People (users) but not Seat types / Access catalog (features).
+        $adminFeatures = array_values(array_diff($fullFeatures, ['features']));
+
+        // Manager / hotel seats — no People (users) or Seat types (features).
+        $coreFeatures = [
+            'dashboard',
+            'locations',
+            'hotels',
+            'rooms',
+            'bookings',
+            'enquiries',
+            'settings',
+            'booking_public',
+            'contact_public',
+        ];
+        $contentFeatures = [...$coreFeatures, 'news', 'news_public', 'media'];
+        $bookingFeatures = [...$contentFeatures, 'rates'];
+
         $this->makePackage(
-            'Admin · Full Suite',
-            'Full admin-panel access.',
-            null,
-            ['admin'],
-            Feature::where('category', 'admin')->pluck('key')->all(),
-            permissionKeys: Permission::pluck('key')->all(),
+            name: 'Admin · Full Suite',
+            description: 'Org admin — locations, assign Manager / Hotel desk seats, up to 3 hotels per destination. Seats show as roles on People.',
+            priceNote: 'Enterprise',
+            roleNames: ['admin'],
+            featureKeys: $adminFeatures,
+            limits: ['locations' => 3, 'hotels_per_location' => 3],
         );
 
         $this->makePackage(
-            'Manager · Content+',
-            'Location-scoped content and bookings management.',
-            null,
-            ['manager'],
-            ['dashboard', 'locations', 'hotels', 'rooms', 'rates', 'bookings', 'news'],
-            permissionKeys: ['locations_list', 'locations_hotels'],
+            name: 'Admin · Starter',
+            description: 'Admin seat: 3 destinations · 3 hotels each. Assign manager & hotel desk people.',
+            priceNote: 'Starter',
+            roleNames: ['admin'],
+            featureKeys: $adminFeatures,
+            limits: ['locations' => 3, 'hotels_per_location' => 3],
         );
 
         $this->makePackage(
-            'Hotel Admin · Core',
-            'Hotel-scoped rooms, rates and bookings.',
-            null,
-            ['hotel_admin'],
-            ['dashboard', 'hotels', 'rooms', 'rates', 'bookings'],
+            name: 'Manager · Booking Pro',
+            description: 'Location manager with rates — one or many assigned destinations (not guest accounts).',
+            priceNote: 'Pro',
+            roleNames: ['manager'],
+            featureKeys: $bookingFeatures,
+            limits: ['locations' => 3, 'hotels_per_location' => 3],
         );
 
-        // 2026-09-16: demonstrates App\Models\PackageLimit — a smaller,
-        // capped admin tier alongside the uncapped Full Suite, not a
-        // replacement for it. Same feature/permission set as Full Suite
-        // (so the *only* thing this package demonstrates is the quota,
-        // not a narrower grant set — that's a separate, orthogonal
-        // design axis already covered by Manager · Content+/Hotel
-        // Admin · Core) but capped to 3 locations total, 1 hotel per
-        // location.
         $this->makePackage(
-            'Admin · Starter',
-            'Full admin-panel access, capped to 3 locations with 1 hotel each.',
-            'Starter',
-            ['admin'],
-            Feature::where('category', 'admin')->pluck('key')->all(),
-            limits: ['locations' => 3, 'hotels_per_location' => 1],
-            permissionKeys: Permission::pluck('key')->all(),
+            name: 'Manager · Content+',
+            description: 'Location manager with news — no rates calendar.',
+            priceNote: 'Mid',
+            roleNames: ['manager'],
+            featureKeys: $contentFeatures,
+            limits: ['locations' => 3, 'hotels_per_location' => 3],
+        );
+
+        $this->makePackage(
+            name: 'Hotel Admin · Booking Pro',
+            description: 'Property seat with rates — scoped to assigned hotels.',
+            priceNote: 'Pro',
+            roleNames: ['hotel_admin'],
+            featureKeys: array_values(array_diff($bookingFeatures, ['locations', 'settings'])),
+        );
+
+        $this->makePackage(
+            name: 'Hotel Admin · Core',
+            description: 'Property starter seat (no rates calendar).',
+            priceNote: 'Starter',
+            roleNames: ['hotel_admin'],
+            featureKeys: array_values(array_diff($coreFeatures, ['locations', 'settings'])),
+        );
+
+        $this->makePackage(
+            name: 'Ops · Booking + Admin',
+            description: 'Combo seat: admin + manager for multi-site ops.',
+            priceNote: 'Pro',
+            roleNames: ['admin', 'manager'],
+            featureKeys: $adminFeatures,
+            limits: ['locations' => 3, 'hotels_per_location' => 3],
         );
     }
 
     /**
      * @param  list<string>  $roleNames
      * @param  list<string>  $featureKeys
-     * @param  array<string, int>  $limits  resourceKey => maxCount
-     * @param  list<string>  $permissionKeys
+     * @param  array<string, int>  $limits
      */
     private function makePackage(
         string $name,
@@ -74,16 +112,31 @@ class PackageSeeder extends Seeder
         array $roleNames,
         array $featureKeys,
         array $limits = [],
-        array $permissionKeys = [],
     ): void {
-        $package = Package::firstOrCreate(
+        $package = Package::updateOrCreate(
             ['name' => $name],
-            ['description' => $description, 'price_note' => $priceNote, 'is_system' => true]
+            [
+                'description' => $description,
+                'price_note' => $priceNote,
+                'is_system' => true,
+            ]
         );
 
         $package->roles()->sync(Role::whereIn('name', $roleNames)->pluck('id'));
         $package->features()->sync(Feature::whereIn('key', $featureKeys)->pluck('id'));
-        $package->permissions()->sync(Permission::whereIn('key', $permissionKeys)->pluck('id'));
+
+        // Grant all permissions that belong to the package's features.
+        $permissionIds = Permission::query()
+            ->whereHas('feature', fn ($q) => $q->whereIn('key', $featureKeys))
+            ->pluck('id');
+        $package->permissions()->sync($permissionIds);
+
+        $keepKeys = array_keys($limits);
+        if ($keepKeys === []) {
+            $package->limits()->delete();
+        } else {
+            $package->limits()->whereNotIn('resource_key', $keepKeys)->delete();
+        }
 
         foreach ($limits as $resourceKey => $maxCount) {
             $package->limits()->updateOrCreate(

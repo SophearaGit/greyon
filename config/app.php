@@ -55,6 +55,11 @@ return [
     'url' => env('APP_URL', 'http://localhost'),
 
     /*
+    | Quasar SPA origin — Google OAuth redirects here after consent.
+    */
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:9400'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------

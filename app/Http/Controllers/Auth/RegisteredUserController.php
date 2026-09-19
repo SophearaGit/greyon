@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\BookingService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,6 +15,8 @@ use Illuminate\Validation\ValidationException;
 
 class RegisteredUserController extends Controller
 {
+    public function __construct(private readonly BookingService $bookings) {}
+
     /**
      * Register a new hotel customer.
      *
@@ -46,6 +49,7 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
 
         Auth::guard('web')->login($user);
+        $this->bookings->claimForUser($user);
 
         return response()->json(['user' => $user], 201);
     }

@@ -6,52 +6,56 @@ use App\Models\Feature;
 use Illuminate\Database\Seeder;
 
 /**
- * The feature catalog, matching the handoff spec's section 3 appendix
- * tables. Developer can add more via
- * App\Http\Controllers\Developer\FeatureController. Module-level keys
- * only — the finer-grained `locations_*` catalog that used to live
- * here as child features (`parent_key`) moved to `PermissionSeeder`
- * (2026-09-16, `App\Models\Permission`); this seeder must run before
- * that one, since it seeds the `locations` feature row those
- * permissions attach to.
+ * Feature catalog matching greyon SPA `src/data/seed-features.ts`
+ * (parent modules only). Location sub-keys live in PermissionSeeder.
  */
 class FeatureSeeder extends Seeder
 {
     public function run(): void
     {
         $adminParents = [
-            ['dashboard', 'Dashboard'],
-            ['locations', 'Locations'],
-            ['hotels', 'Hotels'],
-            ['rooms', 'Room types'],
-            ['rates', 'Rates & availability'],
-            ['bookings', 'Bookings'],
-            ['news', 'News'],
-            ['media', 'Media library (add-on)'],
-            ['enquiries', 'Enquiries'],
-            ['settings', 'SEO / Settings'],
-            ['users', 'Users'],
-            ['features', 'Packages builder'],
+            ['dashboard', 'Dashboard', 'Admin home / ops overview'],
+            ['locations', 'Locations', 'Destination CMS — parent module for location permissions'],
+            ['hotels', 'Hotels', 'Hotel CMS (linked to locations via locationId)'],
+            ['rooms', 'Room types', 'Rooms per hotel'],
+            ['rates', 'Rates & availability', 'Inventory and nightly pricing'],
+            ['bookings', 'Bookings', 'Reservation inbox / management'],
+            ['news', 'News', 'News / blog CMS'],
+            ['media', 'Media library', 'Optional asset library add-on'],
+            ['enquiries', 'Enquiries', 'Contact form inbox'],
+            ['settings', 'SEO / Settings', 'Site defaults and SEO'],
+            ['users', 'People', 'Create managers & hotel desks; assign seats (roles) with location/hotel scope'],
+            ['features', 'Seat types', 'Developer: build seat types (packages) from roles → features → permissions'],
         ];
 
-        foreach ($adminParents as $i => [$key, $label]) {
-            Feature::firstOrCreate(
+        foreach ($adminParents as $i => [$key, $label, $description]) {
+            Feature::updateOrCreate(
                 ['key' => $key],
-                ['label' => $label, 'category' => 'admin', 'sort_order' => $i]
+                [
+                    'label' => $label,
+                    'description' => $description,
+                    'category' => 'admin',
+                    'sort_order' => $i,
+                ]
             );
         }
 
         $public = [
-            ['booking_public', '/booking'],
-            ['news_public', '/news'],
-            ['contact_public', '/contact'],
-            ['portfolios', 'Portfolio stubs'],
+            ['booking_public', 'Public booking engine', 'Guest-facing /booking flow'],
+            ['news_public', 'Public news', 'Guest-facing news pages'],
+            ['contact_public', 'Public contact form', 'Guest-facing /contact'],
+            ['portfolios', 'Portfolio stubs', 'Coming-soon portfolio pages'],
         ];
 
-        foreach ($public as $i => [$key, $label]) {
-            Feature::firstOrCreate(
+        foreach ($public as $i => [$key, $label, $description]) {
+            Feature::updateOrCreate(
                 ['key' => $key],
-                ['label' => $label, 'category' => 'public', 'sort_order' => $i]
+                [
+                    'label' => $label,
+                    'description' => $description,
+                    'category' => 'public',
+                    'sort_order' => $i,
+                ]
             );
         }
     }

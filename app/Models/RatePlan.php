@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * A priced rate under a RoomType ("Flexible Rate", "Non-Refundable
@@ -43,5 +44,13 @@ class RatePlan extends Model
     public function roomType(): BelongsTo
     {
         return $this->belongsTo(RoomType::class);
+    }
+
+    /**
+     * @return HasMany<RateCalendar, $this>
+     */
+    public function rateCalendars(): HasMany
+    {
+        return $this->hasMany(RateCalendar::class);
     }
 }

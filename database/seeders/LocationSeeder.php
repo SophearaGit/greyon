@@ -6,36 +6,56 @@ use App\Models\Location;
 use Illuminate\Database\Seeder;
 
 /**
- * Ids intentionally match AdminSeeder's placeholder `locationIds`
- * (1 = Phnom Penh, 2 = Siem Reap) so those placeholders become real FK
- * references once this seeder runs. Must run before AdminSeeder.
+ * Greyon operates three destinations. Hotel cap is enforced via package
+ * limits (hotels_per_location = 3), not by this seeder alone.
  */
 class LocationSeeder extends Seeder
 {
     public function run(): void
     {
-        Location::firstOrCreate(
-            ['slug' => 'phnom-penh'],
+        $rows = [
             [
+                'slug' => 'phnom-penh',
                 'name' => 'Phnom Penh',
                 'description' => 'The capital — riverside hotels, city tours, and business stays.',
                 'highlights' => ['Riverside promenade', 'Royal Palace', 'Central Market'],
-                'status' => 'published',
+                'hero_image' => 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80',
                 'seo_title' => 'Hotels in Phnom Penh | Greyon',
                 'seo_description' => 'Book hotels in Phnom Penh, Cambodia\'s capital city.',
-            ]
-        );
-
-        Location::firstOrCreate(
-            ['slug' => 'siem-reap'],
+            ],
             [
-                'name' => 'Siem Reap',
-                'description' => 'Gateway to Angkor Wat — resorts, boutique stays, and temple tours.',
-                'highlights' => ['Angkor Archaeological Park', 'Pub Street', 'Tonle Sap Lake'],
-                'status' => 'published',
-                'seo_title' => 'Hotels in Siem Reap | Greyon',
-                'seo_description' => 'Book hotels in Siem Reap, near Angkor Wat.',
-            ]
-        );
+                'slug' => 'sihanoukville',
+                'name' => 'Sihanoukville',
+                'description' => 'Coastal beaches, islands, and resort stays on the Gulf of Thailand.',
+                'highlights' => ['Otres Beach', 'Koh Rong ferries', 'Sunset docks'],
+                'hero_image' => 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
+                'seo_title' => 'Hotels in Sihanoukville | Greyon',
+                'seo_description' => 'Book hotels in Sihanoukville and the Cambodian coast.',
+            ],
+            [
+                'slug' => 'kampot',
+                'name' => 'Kampot',
+                'description' => 'River town calm — pepper farms, caves, and boutique riverside stays.',
+                'highlights' => ['Kampot River', 'Pepper plantations', 'Bokor National Park'],
+                'hero_image' => 'https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=80',
+                'seo_title' => 'Hotels in Kampot | Greyon',
+                'seo_description' => 'Book hotels in Kampot, Cambodia\'s riverside escape.',
+            ],
+        ];
+
+        foreach ($rows as $row) {
+            Location::updateOrCreate(
+                ['slug' => $row['slug']],
+                [
+                    'name' => $row['name'],
+                    'description' => $row['description'],
+                    'highlights' => $row['highlights'],
+                    'hero_image' => $row['hero_image'],
+                    'status' => 'published',
+                    'seo_title' => $row['seo_title'],
+                    'seo_description' => $row['seo_description'],
+                ]
+            );
+        }
     }
 }

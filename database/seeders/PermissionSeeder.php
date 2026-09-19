@@ -7,35 +7,58 @@ use App\Models\Permission;
 use Illuminate\Database\Seeder;
 
 /**
- * The permission catalog (2026-09-16, App\Models\Permission) — the doc
- * maker's "feature -> permissions" sample. Must run after
- * FeatureSeeder (needs the `locations` feature row to exist) and
- * before PackageSeeder (packages grant these by key via
- * `permissionKeys`). These 5 are the same set Round 8 seeded as child
- * *features* under `locations` (`features.parent_key`) before this
- * table existed — same keys/labels, just a different table now.
- * Developer can add more via
- * App\Http\Controllers\Developer\PermissionController.
+ * Every feature gets list/create/update/delete permissions (CRUD).
+ * Locations also keep richer SPA keys (managers, hotels, publish, seo).
  */
 class PermissionSeeder extends Seeder
 {
+    /** @var list<array{0: string, 1: string, 2: string}> */
+    private const CRUD = [
+        ['list', 'List / view', 'See records in this module'],
+        ['create', 'Create', 'Add new records'],
+        ['update', 'Update', 'Edit existing records'],
+        ['delete', 'Delete', 'Remove records'],
+    ];
+
     public function run(): void
     {
-        $locations = Feature::where('key', 'locations')->firstOrFail();
+        $features = Feature::query()->orderBy('sort_order')->orderBy('key')->get();
 
-        $locationPermissions = [
-            ['locations_list', 'Edit destination content'],
-            ['locations_managers', 'Assign managers per destination'],
-            ['locations_hotels', 'Hotels under locations'],
-            ['locations_publish', 'Publish / archive'],
-            ['locations_seo', 'SEO fields'],
-        ];
+        foreach ($features as $feature) {
+            $sort = 0;
+            foreach (self::CRUD as [$action, $label, $description]) {
+                Permission::updateOrCreate(
+                    ['key' => "{$feature->key}_{$action}"],
+                    [
+                        'label' => "{$feature->label}: {$label}",
+                        'description' => $description,
+                        'feature_id' => $feature->id,
+                        'sort_order' => $sort++,
+                    ]
+                );
+            }
+        }
 
-        foreach ($locationPermissions as $i => [$key, $label]) {
-            Permission::firstOrCreate(
-                ['key' => $key],
-                ['label' => $label, 'feature_id' => $locations->id, 'sort_order' => $i]
-            );
+        // Richer location capabilities used by the SPA / AccessService.
+        $locations = Feature::where('key', 'locations')->first();
+        if ($locations) {
+            $extras = [
+                ['locations_managers', 'Location managers', 'Assign managers to destinations', 10],
+                ['locations_hotels', 'Hotels under locations', 'Link hotels to destinations', 11],
+                ['locations_publish', 'Publish destinations', 'Publish / archive location pages', 12],
+                ['locations_seo', 'Location SEO', 'Per-destination SEO fields', 13],
+            ];
+            foreach ($extras as [$key, $label, $description, $sort]) {
+                Permission::updateOrCreate(
+                    ['key' => $key],
+                    [
+                        'label' => $label,
+                        'description' => $description,
+                        'feature_id' => $locations->id,
+                        'sort_order' => $sort,
+                    ]
+                );
+            }
         }
     }
 }

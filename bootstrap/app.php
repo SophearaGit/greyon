@@ -22,16 +22,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \App\Http\Middleware\EnsurePermission::class,
         ]);
 
-        // This app has no Blade frontend of its own — every client is
-        // Postman (or a future mobile app) sending JSON directly, never
-        // a browser page that could be tricked into submitting a form
-        // here. CSRF tokens exist to stop exactly that browser-form
-        // scenario, so with no browser frontend in the picture they add
-        // friction (fetching + resending a token on every request)
-        // without protecting against anything. Session-cookie auth is
-        // still real auth: a request still needs a valid session cookie
-        // (returned only by /login or /admin/login) to reach anything
-        // behind `auth`/`auth:admin`.
+        // CSRF is disabled app-wide: clients are JSON (Postman / Quasar SPA)
+        // using session cookies after /login or /admin/login. Re-enable and
+        // wire XSRF if you add a same-site browser form poster.
         $middleware->validateCsrfTokens(except: ['*']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

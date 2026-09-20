@@ -9,10 +9,21 @@ Auto-deploy the API from GitHub when `main` updates.
 ## Architecture
 
 ```
-push to main → Coolify (Nixpacks) → nginx + php-fpm + queue worker
-                     ↘ GitHub Actions CI (pint + phpunit)
-Post-deploy: php artisan migrate --force
+push to main → GitHub Actions (PHPUnit)
+                    ↓ on success
+              curl Coolify deploy webhook → Coolify (Nixpacks) builds & deploys
 ```
+
+GitHub secrets on the **engine** repo (Settings → Secrets and variables → Actions):
+
+| Secret | Value |
+|--------|--------|
+| `COOLIFY_DEPLOY_WEBHOOK` | Engine app: `https://coolify.ictskills.center/api/v1/deploy?uuid=<ENGINE_UUID>&force=false` |
+| `COOLIFY_API_TOKEN` | Coolify → Keys & Tokens (same token as SPA is fine) |
+
+**Important:** use the engine app’s `uuid`, not the SPA uuid.
+
+PRs only run tests (no deploy). Seed DB once manually; post-deploy should only migrate.
 
 ---
 

@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   test:
-    name: PHPUnit
+    name: Test · deploy
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -43,3 +43,25 @@ jobs:
           CACHE_STORE: array
           QUEUE_CONNECTION: sync
           MAIL_MAILER: array
+
+      # Engine Coolify app uuid (different from SPA). Needs Bearer API token.
+      - name: Deploy (Coolify)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          COOLIFY_DEPLOY_WEBHOOK: ${{ secrets.COOLIFY_DEPLOY_WEBHOOK }}
+          COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
+        run: |
+          if [ -z "$COOLIFY_DEPLOY_WEBHOOK" ]; then
+            echo "COOLIFY_DEPLOY_WEBHOOK secret is missing (engine app deploy URL with uuid)"
+            exit 1
+          fi
+          if [ -z "$COOLIFY_API_TOKEN" ]; then
+            echo "COOLIFY_API_TOKEN secret is missing — Coolify → Keys & Tokens"
+            exit 1
+          fi
+          curl --fail --show-error --silent \
+            --request GET \
+            --header "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
+            --header "Accept: application/json" \
+            "$COOLIFY_DEPLOY_WEBHOOK"
+          echo "Coolify engine deploy triggered"

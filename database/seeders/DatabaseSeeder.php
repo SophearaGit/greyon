@@ -30,18 +30,24 @@ class DatabaseSeeder extends Seeder
         $this->call(EnquirySeeder::class);
 
         // A guest customer you can log in with straight away.
-        User::factory()->create([
-            'name' => 'Test Guest',
-            'email' => 'guest@greyon.test',
-            'role' => 'guest',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'guest@greyon.test'],
+            [
+                'name' => 'Test Guest',
+                'role' => 'guest',
+                'password' => 'password',
+            ]
+        );
 
         // A hotel manager you can log in with straight away.
-        User::factory()->manager()->create([
-            'name' => 'Test Manager',
-            'email' => 'manager@greyon.test',
-            'role' => 'manager',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'manager@greyon.test'],
+            [
+                'name' => 'Test Manager',
+                'role' => 'manager',
+                'password' => 'password',
+            ]
+        );
 
         // Bookings after users exist so guest@greyon.test can own seed stays.
         $this->call(BookingSeeder::class);

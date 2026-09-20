@@ -22,6 +22,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \App\Http\Middleware\EnsurePermission::class,
         ]);
 
+        // Coolify / reverse proxies terminate TLS; trust X-Forwarded-* so
+        // APP_URL, secure cookies, and asset URLs stay https.
+        $middleware->trustProxies(at: '*');
+
         // CSRF is disabled app-wide: clients are JSON (Postman / Quasar SPA)
         // using session cookies after /login or /admin/login. Re-enable and
         // wire XSRF if you add a same-site browser form poster.

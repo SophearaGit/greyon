@@ -60,7 +60,7 @@ jobs:
             exit 1
           fi
           curl --fail --show-error --silent \
-            --request GET \
+            --request POST \
             --header "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
             --header "Accept: application/json" \
             "$COOLIFY_DEPLOY_WEBHOOK"

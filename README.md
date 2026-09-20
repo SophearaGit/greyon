@@ -204,19 +204,13 @@ Seeded accounts (all password `password`):
 | ----------- | --------------------- | ------------------- | ------------------------- | -------------------------- |
 | developers  | dev@greyon.com.kh     | POST /developer/login | — (bypasses everything) | global                     |
 | admins      | admin@greyon.com.kh   | POST /admin/login   | Admin · Full Suite        | global (`admin` is_global) |
-| admins      | pp@greyon.com.kh      | POST /admin/login   | Manager · Content+        | locationIds: [1] (PP)      |
-| admins      | sr@greyon.com.kh      | POST /admin/login   | Manager · Content+        | locationIds: [2] (SR)      |
-| admins      | hotel@greyon.com.kh   | POST /admin/login   | Hotel Admin · Core        | hotelIds: [1] (Riverside)  |
-| admins      | angkor@greyon.com.kh  | POST /admin/login   | Hotel Admin · Core        | hotelIds: [2] (Angkor)     |
+| admins      | starter@greyon.com.kh | POST /admin/login   | Admin · Starter           | global                     |
 | users       | manager@greyon.test   | POST /login          | —                          | unrelated to the tables above |
 | users       | guest@greyon.test     | POST /login          | —                          | customer / spec's `customer` role |
 
-The location/hotel ids above are real foreign keys — `1` = Phnom
-Penh / Riverside, `2` = Siem Reap / Angkor, seeded by `LocationSeeder`/
-`HotelSeeder` (which run before `AdminSeeder`, see `DatabaseSeeder`) —
-attached to each admin's specific package *assignment* on the
-`admin_package` pivot, not stored on the admin row itself (see
-"Scope moved from the admin to the package assignment" above).
+Manager / Hotel desk demos (`pp@`, `kampot@`, `hotel@`, `otres@`,
+`pepper@`) are **not** seeded — create and assign them in People after
+login as `admin@`. Full former recipes: [`docs/SEED_PACKAGE_USERS.md`](docs/SEED_PACKAGE_USERS.md).
 
 ## Testing from Postman
 

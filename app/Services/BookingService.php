@@ -16,9 +16,14 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
  * Port of Nest BookingsService search/create (skip mail — Log::info only).
+ * Staff booking alerts fan out via BookingNotificationService.
  */
 class BookingService
 {
+    public function __construct(
+        private readonly BookingNotificationService $notifications,
+    ) {}
+
     /**
      * @return list<array{
      *   hotel: Hotel,
@@ -232,6 +237,8 @@ class BookingService
             'guestEmail' => $booking->guest_email,
             'total' => $booking->total,
         ]);
+
+        $this->notifications->notifyCreated($booking->fresh(['hotel.location']) ?? $booking);
 
         return $booking;
     }

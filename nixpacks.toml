@@ -38,6 +38,7 @@ chmod -R 775 /app/storage /app/bootstrap/cache
 # Optional first-boot migrate (set RUN_MIGRATIONS=true in Coolify env)
 # Prefer Coolify Post-deployment: `php artisan migrate --force`
 # Seed only once manually: `php artisan db:seed --force` (do not put --seed in post-deploy)
+# Full Coolify CI/CD steps: docs/COOLIFY.md
 if [ "${RUN_MIGRATIONS:-false}" = "true" ]; then
   php /app/artisan migrate --force --no-interaction || true
 fi

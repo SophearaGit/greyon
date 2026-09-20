@@ -9,6 +9,7 @@ use App\Models\Hotel;
 use App\Models\RatePlan;
 use App\Models\RoomType;
 use App\Services\AccessService;
+use App\Services\BookingNotificationService;
 use App\Services\BookingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,6 +24,7 @@ class BookingController extends Controller
     public function __construct(
         private readonly AccessService $access,
         private readonly BookingService $bookings,
+        private readonly BookingNotificationService $notifications,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -77,7 +79,16 @@ class BookingController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
+        $fromStatus = $booking->status;
         $booking->update($data);
+
+        if (array_key_exists('status', $data) && $data['status'] !== $fromStatus) {
+            $this->notifications->notifyStatusChanged(
+                $booking->fresh(['hotel.location']) ?? $booking,
+                $fromStatus,
+                (string) $data['status'],
+            );
+        }
 
         return response()->json(['booking' => new BookingResource($booking->refresh())]);
     }

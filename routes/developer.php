@@ -14,6 +14,7 @@ use App\Http\Controllers\Developer\FeatureController;
 use App\Http\Controllers\Developer\PackageController;
 use App\Http\Controllers\Developer\PermissionController;
 use App\Http\Controllers\Developer\RoleController;
+use App\Http\Controllers\StaffNotificationController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -52,6 +53,12 @@ Route::group(['middleware' => 'auth:developer', 'prefix' => 'developer', 'as' =>
     Route::put('/password', [PasswordController::class, 'update'])->name('password.update');
 
     Route::get('/dashboard', [DeveloperDashboardController::class, 'index'])->name('dashboard');
+
+    // Booking inbox — developers receive every hotel's booking alerts.
+    Route::get('/notifications', [StaffNotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/unread-count', [StaffNotificationController::class, 'unreadCount'])->name('notifications.unread');
+    Route::post('/notifications/read-all', [StaffNotificationController::class, 'markAllRead'])->name('notifications.read-all');
+    Route::post('/notifications/{notification}/read', [StaffNotificationController::class, 'markRead'])->name('notifications.read');
 
     // "crud role for developer to add"
     Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');

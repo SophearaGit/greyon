@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\RatePlanController;
 use App\Http\Controllers\Admin\RoomTypeController;
 use App\Http\Controllers\Admin\SiteSettingController;
 use App\Http\Controllers\Admin\TeamController;
+use App\Http\Controllers\StaffNotificationController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -119,6 +120,12 @@ Route::group(['middleware' => 'auth:admin', 'prefix' => 'admin', 'as' => 'admin.
         Route::get('/bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
         Route::patch('/bookings/{booking}', [BookingController::class, 'update'])->name('bookings.update');
     });
+
+    // Booking inbox — scoped by AccessService on fan-out; list is per recipient.
+    Route::get('/notifications', [StaffNotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/unread-count', [StaffNotificationController::class, 'unreadCount'])->name('notifications.unread');
+    Route::post('/notifications/read-all', [StaffNotificationController::class, 'markAllRead'])->name('notifications.read-all');
+    Route::post('/notifications/{notification}/read', [StaffNotificationController::class, 'markRead'])->name('notifications.read');
 
     Route::middleware('permission:news')->group(function () {
         Route::get('/news', [NewsController::class, 'index'])->name('news.index');

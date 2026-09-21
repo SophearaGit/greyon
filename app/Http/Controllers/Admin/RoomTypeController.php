@@ -99,6 +99,18 @@ class RoomTypeController extends Controller
      */
     private function validated(Request $request, ?RoomType $roomType = null): array
     {
+        if ($request->has('images') && is_array($request->input('images'))) {
+            $request->merge([
+                'images' => array_values(array_filter(
+                    $request->input('images'),
+                    fn ($src) => is_string($src)
+                        && $src !== ''
+                        && ! str_starts_with($src, 'data:')
+                        && strlen($src) <= 2048
+                )),
+            ]);
+        }
+
         $data = $request->validate([
             'hotelId' => [$roomType ? 'sometimes' : 'required', 'integer', Rule::exists(Hotel::class, 'id')],
             'name' => [$roomType ? 'sometimes' : 'required', 'string', 'max:255'],
@@ -112,7 +124,7 @@ class RoomTypeController extends Controller
             ],
             'description' => ['nullable', 'string'],
             'images' => ['array'],
-            'images.*' => ['string'],
+            'images.*' => ['string', 'max:2048'],
             'bedType' => ['nullable', 'string', 'max:255'],
             'roomSize' => ['nullable', 'string', 'max:255'],
             'maxAdults' => ['sometimes', 'integer', 'min:1'],

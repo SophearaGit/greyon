@@ -27,14 +27,13 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login');
     Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
     Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.store');
-
-    // Browser redirect flow, not a plain JSON request — open the first
-    // one in an actual browser tab, Google sends it back to the second.
-    Route::get('/auth/google/redirect', [GoogleController::class, 'redirect'])->name('google.redirect');
-    Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
 });
 
-// Ticket exchange must work whether or not a prior web session exists.
+// Google OAuth must NOT use `guest` middleware: an existing web session
+// cookie (from a prior sign-in) would redirect to /dashboard JSON and
+// never reach Google or the SPA ticket handoff.
+Route::get('/auth/google/redirect', [GoogleController::class, 'redirect'])->name('google.redirect');
+Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
 Route::post('/auth/google/exchange', [GoogleController::class, 'exchange'])->name('google.exchange');
 
 Route::middleware('auth')->group(function () {

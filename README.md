@@ -109,6 +109,21 @@ starts before landing here — both recorded in the project's
   it holds. The 5 `locations_*` keys from Round 8 are now real
   `permissions` rows instead of child features. See "Permissions"
   below.
+- **Package lineup replaced (round 12)** — the previous 4 seeded
+  packages (`Admin · Full Suite`, `Admin · Starter`, `Manager ·
+  Content+`, `Hotel Admin · Core`) are gone, replaced by 4 new ones:
+  a single `Admin` package (every admin feature/permission, but now
+  capped at 3 locations / 3 hotels per location by default — there's
+  no longer an uncapped admin tier seeded), and 3 identically-built
+  `Manager · <City>` packages (Phnom Penh, Kampot, Sihanoukville)
+  capped at `locations: 0` (can't create a new destination at all) but
+  `hotels_per_location: 3` (can add hotels within their own location,
+  same cap `Admin` gets) — they fully view/edit/publish everything in
+  their scope and can add up to 3 hotels there, they just can't create
+  a whole new location. See "Package quantity limits" below and
+  `database/seeders/PackageSeeder.php`'s docblock for the full
+  reasoning, including why "dev" from the request maps to the existing
+  `developers` guard rather than a new package.
 - Not yet touched: availability, bookings, news, enquiries, media,
   settings, and the rest of the public API.
 
@@ -203,14 +218,23 @@ Seeded accounts (all password `password`):
 | Table       | Email                | Login endpoint      | Packages / role          | Scope                     |
 | ----------- | --------------------- | ------------------- | ------------------------- | -------------------------- |
 | developers  | dev@greyon.com.kh     | POST /developer/login | — (bypasses everything) | global                     |
-| admins      | admin@greyon.com.kh   | POST /admin/login   | Admin · Full Suite        | global (`admin` is_global) |
-| admins      | starter@greyon.com.kh | POST /admin/login   | Admin · Starter           | global                     |
+| admins      | admin@greyon.com.kh   | POST /admin/login   | Admin                     | global (`admin` is_global), capped: 3 locations / 3 hotels per location |
+| admins      | pp@greyon.com.kh      | POST /admin/login   | Manager · Phnom Penh      | locationIds: [1] (Phnom Penh), can add up to 3 hotels there, can't add locations |
+| admins      | kp@greyon.com.kh      | POST /admin/login   | Manager · Kampot          | locationIds: [3] (Kampot), can add up to 3 hotels there, can't add locations |
+| admins      | sv@greyon.com.kh      | POST /admin/login   | Manager · Sihanoukville   | locationIds: [4] (Sihanoukville), can add up to 3 hotels there, can't add locations |
 | users       | manager@greyon.test   | POST /login          | —                          | unrelated to the tables above |
 | users       | guest@greyon.test     | POST /login          | —                          | customer / spec's `customer` role |
 
-Manager / Hotel desk demos (`pp@`, `kampot@`, `hotel@`, `otres@`,
-`pepper@`) are **not** seeded — create and assign them in People after
-login as `admin@`. Full former recipes: [`docs/SEED_PACKAGE_USERS.md`](docs/SEED_PACKAGE_USERS.md).
+The location ids above are real foreign keys — `1` = Phnom Penh,
+`2` = Siem Reap, `3` = Kampot, `4` = Sihanoukville, seeded by
+`LocationSeeder` (which runs before `AdminSeeder`, see
+`DatabaseSeeder`) — attached to each admin's specific package
+*assignment* on the `admin_package` pivot, not stored on the admin row
+itself (see "Scope moved from the admin to the package assignment"
+above). Siem Reap is still seeded (and Angkor Hotel still exists there)
+but round 12 dropped its dedicated manager account — a global `Admin`
+seat can still manage it, or a developer can assign a new
+location-scoped package there via `PUT /developer/admins/:id/packages`.
 
 ## Testing from Postman
 
@@ -439,10 +463,14 @@ it outright (`parent_key` is gone). Two things now sit under `roles`/
   `permissionKeys` in the API body), exactly the same "à la carte"
   selection `featureKeys` already uses. This is a deliberate design
   choice, not an oversight — Round 8's `locations_*` sub-feature keys
-  already worked this way (`Manager · Content+` grants 2 of the 5
-  seeded ones, `Admin · Full Suite` grants all 5), so formalizing the
-  table kept the same selection model rather than switching to
-  automatic inheritance.
+  already worked this way (packages picked a subset, never the whole
+  set automatically), so formalizing the table kept the same selection
+  model rather than switching to automatic inheritance. (The specific
+  packages cited when this was written, `Manager · Content+` and
+  `Admin · Full Suite`, were replaced in round 12 — see "Package
+  lineup replaced" above — but the design point still holds: round
+  12's `Manager · <City>` packages grant all 5 permission keys, which
+  is still an explicit, à la carte choice, not an automatic one.)
 - `App\Services\AccessService::hasPermission(admin, key)` /
   `effectivePermissionKeys(admin)` are the permission-level equivalent
   of `can()`/`effectiveFeatureKeys()` — a separate catalog, separate
@@ -488,19 +516,30 @@ packages ("most generous wins," same union philosophy as
   constraint models "this destination gets N hotels," a property of the
   location slot, not of whichever admin happens to be creating into it.
 
-No existing package has either limit row by default (`Admin · Full
-Suite`, `Manager · Content+`, `Hotel Admin · Core` are all still
-unlimited — `effectiveLimit()` returns `null` for a package with no
-matching row, and an admin is unlimited unless *every* qualifying
-package caps the key). The new 4th seeded package, **`Admin ·
-Starter`** (same full admin feature set as `Admin · Full Suite`, so the
-limits are the *only* thing it demonstrates), is capped to
-`locations: 3`, `hotels_per_location: 1` — seeded admin `starter@` /
-`password` holds it. Hitting a cap returns `403` with a message naming
-the current usage and the limit (e.g. `"Location limit reached (3/3)
-for your package(s)."`). This is a quantity cap only — it doesn't
-restrict *where* an admin can create (that's still the "create is
-feature-gated, not scope-gated" rule above), just how many.
+**Round 12 (2026-09-22) capped every seeded package** — there's no
+longer an unlimited package in the default lineup. `Admin` (the sole
+admin-role package) is capped to `locations: 3`, `hotels_per_location:
+3`; each `Manager · <City>` package is capped to `locations: 0`
+(managers can't create a new destination at all) but
+`hotels_per_location: 3` — same hotel cap as `Admin`, so a manager
+*can* add up to 3 hotels within their own location. A `0` cap blocks
+`store()` outright (usage starts at 0, and `used >= maxCount` is
+already true), while every other locations/hotels capability (list,
+view, update, publish, plus whatever the location/hotel already
+contains — room types, rate plans, bookings, news) stays fully
+available regardless of any cap, since limits only ever gate
+`store()`, never `index`/`show`/`update`. `effectiveLimit()` itself is
+unchanged — `null` still means unlimited for a package with no
+matching row — a developer can still build a genuinely uncapped
+package through `POST /developer/packages` by simply omitting `limits`
+for a resource key; the seeded lineup just no longer ships one by
+default. Hitting a cap returns `403` with a message naming the current
+usage and the limit (e.g. `"Location limit reached (3/3) for your
+package(s)."`, or `"...(0/0)..."` for a manager trying to add a
+location). This is a quantity cap only — it doesn't restrict *where* an
+admin can create (that's
+still the "create is feature-gated, not scope-gated" rule above), just
+how many.
 
 **Public — Locations & Hotels (no auth, spec section 9)**
 

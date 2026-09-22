@@ -54,9 +54,10 @@ class Package extends Model
      * developer sees to pick from once they've expanded a feature in
      * the package builder), not an automatic grant path. This mirrors
      * exactly how Round 8's `locations_*` sub-feature keys worked
-     * before this table existed: `Manager · Content+` grants 2 of the
-     * 5, `Admin · Full Suite` grants all 5 — always a deliberate,
-     * per-package choice. See
+     * before this table existed — a package always picks its subset
+     * deliberately, never inherits one automatically. (As of Round 12
+     * every seeded package happens to grant all 5, but that's still an
+     * explicit per-package choice, not a change to this rule.) See
      * App\Services\AccessService::effectivePermissionKeys().
      *
      * @return BelongsToMany<Permission, $this>

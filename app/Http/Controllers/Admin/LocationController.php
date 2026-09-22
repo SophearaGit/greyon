@@ -77,13 +77,15 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  * a scope restriction (an admin can still create outside their own
  * scope, per the 2026-09-15 policy above) — this is purely "how many,"
  * counted from `locations.created_by_admin_id`, which this method sets
- * on every location it creates. No package has this capped by default
- * (`Admin · Full Suite`/`Manager · Content+` have no `locations` limit
- * row, so existing seeded admins stay unlimited) — it only applies to
- * a package a developer has explicitly capped, e.g. the seeded
- * `Admin · Starter` (3 locations). `effectiveLimit()` returns `null`
- * for "no cap," so the common case costs one cheap collection scan and
- * no query.
+ * on every location it creates. Round 12 (2026-09-22) capped every
+ * seeded package by default — see `database/seeders/PackageSeeder.php`'s
+ * docblock: the sole `Admin` package is capped at 3, and all 3
+ * `Manager · <City>` packages are capped at 0 (can't add locations at
+ * all — "no adding properties"). `effectiveLimit()` returns `null` for
+ * "no cap," so a developer building a brand-new, genuinely uncapped
+ * package can still get one by simply omitting a `locations` limit row
+ * — the common no-cap case costs one cheap collection scan and no
+ * query.
  */
 class LocationController extends Controller
 {

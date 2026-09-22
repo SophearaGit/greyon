@@ -33,7 +33,7 @@ class AdminFactory extends Factory
     /**
      * Attach a package to the admin this state is applied to, once
      * created, with an optional per-assignment scope — e.g.
-     * `Admin::factory()->withPackage('Manager · Content+', locationIds: [1])->create()`.
+     * `Admin::factory()->withPackage('Manager · Kampot', locationIds: [3])->create()`.
      * There's no `role`/`locationIds`/`hotelIds` column on `Admin`
      * itself to set in `definition()`; scope lives on the
      * `admin_package` pivot (App\Models\AdminPackage), which only

@@ -42,7 +42,17 @@ use Illuminate\Support\Facades\Route;
 | not a role check on this one. See routes/developer.php's docblock.
 */
 
-Route::group(['middleware' => 'guest:admin', 'prefix' => 'admin', 'as' => 'admin.'], function () {
+// No `guest:admin` gate here (2026-09-23 fix): this is a pure JSON API
+// with no Blade login page to protect, and Laravel's default `guest`
+// middleware has no JSON-awareness — it silently 302-redirects an
+// already-authenticated caller instead of returning a clean error,
+// which broke re-POSTing /admin/login without an explicit logout
+// first (reported bug: "Unauthenticated." on account switch).
+// AuthenticatedSessionController::store() already calls Auth::attempt()
+// + session()->regenerate() on every call, so logging in again on the
+// same guard cleanly replaces the previous session's auth state — no
+// guest gate is needed for that to work correctly.
+Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
     Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login.store');
     Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
     Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.store');

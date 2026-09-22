@@ -30,7 +30,11 @@ use Illuminate\Support\Facades\Route;
 | gate, since only a real Developer account can ever get a session here.
 */
 
-Route::group(['middleware' => 'guest:developer', 'prefix' => 'developer', 'as' => 'developer.'], function () {
+// No `guest:developer` gate here (2026-09-23 fix) — same reasoning as
+// routes/admin.php's login group: no Blade page to protect, and the
+// default `guest` middleware's blind redirect broke re-login without
+// an explicit logout first. See routes/admin.php's docblock.
+Route::group(['prefix' => 'developer', 'as' => 'developer.'], function () {
     Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login.store');
     Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
     Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.store');

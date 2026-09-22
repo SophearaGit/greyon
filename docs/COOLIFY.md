@@ -3,6 +3,7 @@
 Auto-deploy the API from GitHub when `main` updates.
 
 **Repo:** `https://github.com/SophearaGit/greyon.git`  
+**Coolify panel:** `https://coolify.ictcenter.blog/`  
 **Suggested domain:** `https://engine.greyon.site`  
 **SPA:** `https://greyon.site` (FRONTEND_URL)
 
@@ -18,7 +19,7 @@ GitHub secrets on the **engine** repo (Settings → Secrets and variables → Ac
 
 | Secret | Value |
 |--------|--------|
-| `COOLIFY_DEPLOY_WEBHOOK` | Engine app: `https://coolify.ictskills.center/api/v1/deploy?uuid=<ENGINE_UUID>&force=false` |
+| `COOLIFY_DEPLOY_WEBHOOK` | Engine app: `https://coolify.ictcenter.blog/api/v1/deploy?uuid=<ENGINE_UUID>&force=false` |
 | `COOLIFY_API_TOKEN` | Coolify → Keys & Tokens (same token as SPA is fine) |
 
 **Important:** use the engine app’s `uuid`, not the SPA uuid.

@@ -38,8 +38,12 @@
       "value": "2"
     },
     {
-      "key": "hotel_package_id",
+      "key": "kampot_package_id",
       "value": "3"
+    },
+    {
+      "key": "sihanoukville_package_id",
+      "value": "4"
     },
     {
       "key": "location_id",
@@ -56,10 +60,6 @@
     {
       "key": "rate_plan_id",
       "value": "1"
-    },
-    {
-      "key": "starter_package_id",
-      "value": "4"
     }
   ],
   "item": [
@@ -610,7 +610,7 @@
               }
             },
             {
-              "name": "Get Package — Admin · Starter (view limits)",
+              "name": "Get Package — Admin (view limits)",
               "request": {
                 "method": "GET",
                 "header": [
@@ -619,7 +619,7 @@
                     "value": "application/json"
                   }
                 ],
-                "url": "{{base_url}}/developer/packages/{{starter_package_id}}"
+                "url": "{{base_url}}/developer/packages/{{admin_package_id}}"
               }
             },
             {
@@ -961,7 +961,7 @@
                       "language": "json"
                     }
                   },
-                  "raw": "{\n    \"packages\": [\n        {\n            \"packageId\": \"{{location_package_id}}\",\n            \"locationIds\": [\n                1\n            ]\n        },\n        {\n            \"packageId\": \"{{hotel_package_id}}\",\n            \"hotelIds\": [\n                2\n            ]\n        }\n    ]\n}"
+                  "raw": "{\n    \"packages\": [\n        {\n            \"packageId\": \"{{location_package_id}}\",\n            \"locationIds\": [\n                1\n            ]\n        },\n        {\n            \"packageId\": \"{{kampot_package_id}}\",\n            \"locationIds\": [\n                3\n            ]\n        }\n    ]\n}"
                 }
               }
             },
@@ -1093,7 +1093,7 @@
               }
             },
             {
-              "name": "Login — sr (manager, Siem Reap)",
+              "name": "Login — kp (manager, Kampot)",
               "request": {
                 "method": "POST",
                 "header": [
@@ -1114,12 +1114,12 @@
                       "language": "json"
                     }
                   },
-                  "raw": "{\n    \"email\": \"sr@greyon.com.kh\",\n    \"password\": \"password\"\n}"
+                  "raw": "{\n    \"email\": \"kp@greyon.com.kh\",\n    \"password\": \"password\"\n}"
                 }
               }
             },
             {
-              "name": "Login — hotel (hotel_admin, Riverside)",
+              "name": "Login — sv (manager, Sihanoukville)",
               "request": {
                 "method": "POST",
                 "header": [
@@ -1140,33 +1140,7 @@
                       "language": "json"
                     }
                   },
-                  "raw": "{\n    \"email\": \"hotel@greyon.com.kh\",\n    \"password\": \"password\"\n}"
-                }
-              }
-            },
-            {
-              "name": "Login — angkor (hotel_admin, Angkor)",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "url": "{{base_url}}/admin/login",
-                "body": {
-                  "mode": "raw",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  },
-                  "raw": "{\n    \"email\": \"angkor@greyon.com.kh\",\n    \"password\": \"password\"\n}"
+                  "raw": "{\n    \"email\": \"sv@greyon.com.kh\",\n    \"password\": \"password\"\n}"
                 }
               }
             },
@@ -1193,32 +1167,6 @@
                     }
                   },
                   "raw": "{\n    \"email\": \"srsup@greyon.com.kh\",\n    \"password\": \"password\"\n}"
-                }
-              }
-            },
-            {
-              "name": "Login — starter (Admin · Starter, capped)",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Accept",
-                    "value": "application/json"
-                  }
-                ],
-                "url": "{{base_url}}/admin/login",
-                "body": {
-                  "mode": "raw",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  },
-                  "raw": "{\n    \"email\": \"starter@greyon.com.kh\",\n    \"password\": \"password\"\n}"
                 }
               }
             },
@@ -1423,7 +1371,7 @@
               }
             },
             {
-              "name": "Create Location — as Starter (log in as starter first)",
+              "name": "Create Location — capped (log in as admin@ first)",
               "request": {
                 "method": "POST",
                 "header": [
@@ -1444,12 +1392,12 @@
                       "language": "json"
                     }
                   },
-                  "raw": "{\n    \"name\": \"Starter Loc\",\n    \"slug\": \"starter-loc\"\n}"
+                  "raw": "{\n    \"name\": \"Capped Loc\",\n    \"slug\": \"capped-loc\"\n}"
                 }
               }
             },
             {
-              "name": "Create Location — as Starter, 4th (expect 403 limit reached)",
+              "name": "Create Location — capped, 4th (expect 403 limit reached)",
               "request": {
                 "method": "POST",
                 "header": [
@@ -1470,7 +1418,7 @@
                       "language": "json"
                     }
                   },
-                  "raw": "{\n    \"name\": \"Starter Loc 4\",\n    \"slug\": \"starter-loc-4\"\n}"
+                  "raw": "{\n    \"name\": \"Capped Loc 4\",\n    \"slug\": \"capped-loc-4\"\n}"
                 }
               }
             },
@@ -1623,7 +1571,7 @@
               }
             },
             {
-              "name": "Create Hotel — as Starter, 1st on a location (log in as starter first)",
+              "name": "Create Hotel — capped, 1st on a location (log in as admin@ first)",
               "request": {
                 "method": "POST",
                 "header": [
@@ -1644,12 +1592,12 @@
                       "language": "json"
                     }
                   },
-                  "raw": "{\n    \"locationId\": 3,\n    \"name\": \"Starter Hotel 1\",\n    \"slug\": \"starter-hotel-1\"\n}"
+                  "raw": "{\n    \"locationId\": 3,\n    \"name\": \"Capped Hotel 1\",\n    \"slug\": \"capped-hotel-1\"\n}"
                 }
               }
             },
             {
-              "name": "Create Hotel — as Starter, 2nd on same location (expect 403 limit reached)",
+              "name": "Create Hotel — capped, 4th on same location (expect 403 limit reached)",
               "request": {
                 "method": "POST",
                 "header": [
@@ -1670,7 +1618,7 @@
                       "language": "json"
                     }
                   },
-                  "raw": "{\n    \"locationId\": 3,\n    \"name\": \"Starter Hotel 2\",\n    \"slug\": \"starter-hotel-2\"\n}"
+                  "raw": "{\n    \"locationId\": 3,\n    \"name\": \"Capped Hotel 4\",\n    \"slug\": \"capped-hotel-4\"\n}"
                 }
               }
             },

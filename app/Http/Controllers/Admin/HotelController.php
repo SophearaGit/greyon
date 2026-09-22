@@ -46,8 +46,13 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  * already under the target `locationId`, regardless of who created
  * them, because the constraint is a property of the location slot
  * ("this destination gets one hotel"), not of the admin doing the
- * creating. No package has this capped by default — see the seeded
- * `Admin · Starter` package for the one that does (1 hotel/location).
+ * creating. Round 12 (2026-09-22) capped every seeded package by
+ * default — see `database/seeders/PackageSeeder.php`'s docblock: the
+ * `Admin` package and all 3 `Manager · <City>` packages are all capped
+ * at 3 (unlike `locations`, where only `Admin` can create at all — see
+ * LocationController's docblock). A developer building a brand-new
+ * package can still leave this uncapped by simply omitting a
+ * `hotels_per_location` limit row.
  */
 class HotelController extends Controller
 {

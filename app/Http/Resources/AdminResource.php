@@ -31,6 +31,7 @@ class AdminResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'status' => $this->status,
+            'createdByAdminId' => $this->created_by_admin_id,
             'packages' => $this->whenLoaded(
                 'packages',
                 fn () => $this->packages->map(fn ($package) => [

@@ -13,6 +13,7 @@ use App\Services\AccessService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -23,6 +24,18 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  * Assigns seats (packages) that grant manager / hotel_admin — not other
  * org-admin seats. Scope: many locations per manager; hotels capped by
  * package limits (hotels_per_location).
+ *
+ * store() quantity cap (2026-09-23): same pattern as
+ * App\Http\Controllers\Admin\LocationController's `locations`
+ * create-limit — an admin's packages can cap *how many people total*
+ * they're allowed to add via People/Team, via
+ * App\Services\AccessService::effectiveLimit() against the `managers`
+ * resource key (feature `users`), counted from
+ * `admins.created_by_admin_id` (set on every account this method
+ * creates). Counts every person added here regardless of seat
+ * (manager or hotel_admin) — it's a headcount cap on this admin's
+ * People list, not a per-role cap. `effectiveLimit()` returning `null`
+ * means unlimited, same as the locations cap.
  */
 class TeamController extends Controller
 {
@@ -57,12 +70,31 @@ class TeamController extends Controller
         $actor = $request->user('admin');
         $data = $this->validated($request, null, $actor);
 
+        $this->assertWithinCreateLimit($actor);
+
+        $hadExplicitPassword = filled($data['password'] ?? null);
         $data['password'] = Hash::make($data['password'] ?? Str::password(16));
         $packageSync = $data['package_sync'];
         unset($data['package_sync']);
 
-        $admin = Admin::create($data);
+        $admin = Admin::create([
+            ...$data,
+            'created_by_admin_id' => $actor->id,
+        ]);
         $admin->packages()->sync($packageSync);
+
+        if (! $hadExplicitPassword) {
+            // No password was typed in for this person, so the random
+            // one just hashed above is unknown to anyone and the
+            // account would otherwise be unusable. Send a "set your
+            // password" link through the same broker
+            // Admin\Auth\PasswordResetLinkController already uses for
+            // "forgot password" — this is the account's first, and
+            // only, way to ever learn a working password.
+            // (2026-09-23 fix — reported bug: no way to set a password
+            // for a newly created Manager/Hotel-desk account.)
+            Password::broker('admins')->sendResetLink(['email' => $admin->email]);
+        }
 
         return response()->json(['admin' => new AdminResource($admin->load(self::PACKAGE_EAGER_LOAD))], 201);
     }
@@ -191,6 +223,29 @@ class TeamController extends Controller
         }
 
         return $sync;
+    }
+
+    /**
+     * The `managers` package-limit check (see class docblock) — how
+     * many people *this admin* has added via People/Team so far, not
+     * a global or per-package count. `effectiveLimit()` returning
+     * `null` means unlimited.
+     */
+    private function assertWithinCreateLimit(Admin $actor): void
+    {
+        $limit = $this->access->effectiveLimit($actor, 'users', 'managers');
+
+        if ($limit === null) {
+            return;
+        }
+
+        $used = Admin::where('created_by_admin_id', $actor->id)->count();
+
+        if ($used >= $limit) {
+            throw ValidationException::withMessages([
+                'packages' => "You've reached your limit of {$limit} people added ({$used}/{$limit}) for your package(s).",
+            ]);
+        }
     }
 
     /**

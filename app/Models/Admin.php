@@ -21,9 +21,16 @@ use Illuminate\Notifications\Notifiable;
  * here either as of the schema-driven-scoping pass: both were tried as
  * flat columns on this table and backed out (see the migration
  * history) once it turned out scope belongs to a package assignment,
- * not the admin as a whole — an admin's *only* real attribute beyond
- * name/email/password/status is "which packages, each with its own
- * scope."
+ * not the admin as a whole — an admin's real attributes beyond
+ * name/email/password/status are "which packages, each with its own
+ * scope" and, since 2026-09-23, `created_by_admin_id` — pure
+ * attribution (nullable, `nullOnDelete`) recording which org admin
+ * added this account via People/Team, so App\Http\Controllers\
+ * Admin\TeamController can enforce a per-admin cap on how many people
+ * they've added (App\Models\PackageLimit resource key `managers`,
+ * same pattern as `locations.created_by_admin_id`). Developer-created
+ * admins never get this set — developers bypass package limits
+ * entirely.
  *
  * Backed by its own `admins` table — never the `users` table. Admin
  * accounts are not self-registerable; they're created by a developer
@@ -41,6 +48,7 @@ class Admin extends Authenticatable implements MustVerifyEmail
      * @var list<string>
      */
     protected $fillable = [
+        'created_by_admin_id',
         'name',
         'email',
         'password',
@@ -65,6 +73,7 @@ class Admin extends Authenticatable implements MustVerifyEmail
     protected function casts(): array
     {
         return [
+            'created_by_admin_id' => 'integer',
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];

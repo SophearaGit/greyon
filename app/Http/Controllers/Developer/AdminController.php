@@ -11,6 +11,7 @@ use App\Models\Package;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -56,6 +57,7 @@ class AdminController extends Controller
     {
         $data = $this->validated($request);
 
+        $hadExplicitPassword = filled($data['password'] ?? null);
         $data['password'] = Hash::make($data['password'] ?? Str::password(16));
 
         $packageSync = $data['package_sync'];
@@ -63,6 +65,15 @@ class AdminController extends Controller
 
         $admin = Admin::create($data);
         $admin->packages()->sync($packageSync);
+
+        if (! $hadExplicitPassword) {
+            // Same fix as Admin\TeamController::store() (2026-09-23) —
+            // a developer-created admin with no password typed in
+            // otherwise has an unrecoverable random one and can never
+            // log in. Send a "set your password" link through the same
+            // broker /admin/forgot-password already uses.
+            Password::broker('admins')->sendResetLink(['email' => $admin->email]);
+        }
 
         return response()->json(['admin' => new AdminResource($admin->load(self::PACKAGE_EAGER_LOAD))], 201);
     }

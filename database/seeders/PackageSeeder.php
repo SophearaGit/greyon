@@ -28,6 +28,12 @@ use Illuminate\Database\Seeder;
  *     Unlike before this round, there is no longer an *uncapped* admin
  *     tier seeded — `Admin` is the only admin-role package, and it's
  *     capped by default.
+ *   - **Added 2026-09-23**: the `Admin` package is also capped at 3
+ *     people (`managers` limit) addable via People/Team
+ *     (App\Http\Controllers\Admin\TeamController) — same "3, and we
+ *     may raise it later" shape as the locations/hotels caps above.
+ *     Raising it later is just editing this `PackageLimit` row (or
+ *     via the developer package-builder UI) — nothing else to change.
  *   - "manager (city) — no adding properties, only others" is the 3
  *     `Manager · <City>` packages. A package doesn't carry a location
  *     itself — the actual scope comes from `location_ids` on that
@@ -60,7 +66,7 @@ class PackageSeeder extends Seeder
             null,
             ['admin'],
             $adminFeatureKeys,
-            limits: ['locations' => 3, 'hotels_per_location' => 3],
+            limits: ['locations' => 3, 'hotels_per_location' => 3, 'managers' => 3],
             permissionKeys: $allPermissionKeys,
         );
 

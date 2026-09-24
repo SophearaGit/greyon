@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\AuthorizesAdminPanel;
 use App\Http\Resources\MediaItemResource;
 use App\Models\MediaItem;
 use App\Services\AccessService;
@@ -15,6 +16,8 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  */
 class MediaItemController extends Controller
 {
+    use AuthorizesAdminPanel;
+
     public function __construct(private readonly AccessService $access) {}
 
     public function index(): JsonResponse
@@ -32,7 +35,7 @@ class MediaItemController extends Controller
     public function store(Request $request): JsonResponse
     {
         $data = $this->validated($request);
-        $data['created_by_admin_id'] = $request->user('admin')->id;
+        $data['created_by_admin_id'] = $this->actingAdmin($request)?->id;
 
         $item = MediaItem::create($data);
 
@@ -48,9 +51,7 @@ class MediaItemController extends Controller
 
     public function destroy(Request $request, MediaItem $mediaItem): JsonResponse
     {
-        if (! $this->access->isGlobal($request->user('admin'))) {
-            throw new HttpException(403, 'Only a global seat can do this.');
-        }
+        $this->assertGlobalSeat($request);
 
         $mediaItem->delete();
 

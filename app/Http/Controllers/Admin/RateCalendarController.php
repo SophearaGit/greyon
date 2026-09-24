@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\AuthorizesAdminPanel;
 use App\Http\Resources\RateCalendarResource;
 use App\Models\RateCalendar;
 use App\Models\RatePlan;
@@ -17,12 +18,12 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  */
 class RateCalendarController extends Controller
 {
+    use AuthorizesAdminPanel;
+
     public function __construct(private readonly AccessService $access) {}
 
     public function index(Request $request): JsonResponse
     {
-        $admin = $request->user('admin');
-
         $query = RateCalendar::with('ratePlan.roomType')
             ->when($request->query('ratePlanId'), fn ($q, $id) => $q->where('rate_plan_id', $id))
             ->when($request->query('from'), fn ($q, $from) => $q->where('date', '>=', $from))
@@ -30,7 +31,7 @@ class RateCalendarController extends Controller
             ->orderBy('date');
 
         $rows = $query->get()
-            ->filter(fn (RateCalendar $row) => $this->access->canAccessHotel($admin, $row->ratePlan->roomType->hotel_id))
+            ->filter(fn (RateCalendar $row) => $this->adminCanAccessHotel($request, $row->ratePlan->roomType->hotel_id))
             ->values();
 
         return response()->json(['rateCalendars' => RateCalendarResource::collection($rows)]);
@@ -70,10 +71,7 @@ class RateCalendarController extends Controller
     public function destroy(Request $request, RateCalendar $rateCalendar): JsonResponse
     {
         $this->authorizeScope($request, $rateCalendar);
-
-        if (! $this->access->isGlobal($request->user('admin'))) {
-            throw new HttpException(403, 'Only a global seat can do this.');
-        }
+        $this->assertGlobalSeat($request);
 
         $rateCalendar->delete();
 
@@ -112,7 +110,7 @@ class RateCalendarController extends Controller
     {
         $rateCalendar->loadMissing('ratePlan.roomType');
 
-        if (! $this->access->canAccessHotel($request->user('admin'), $rateCalendar->ratePlan->roomType->hotel_id)) {
+        if (! $this->adminCanAccessHotel($request, $rateCalendar->ratePlan->roomType->hotel_id)) {
             throw new HttpException(404, 'Not found.');
         }
     }
@@ -121,7 +119,7 @@ class RateCalendarController extends Controller
     {
         $ratePlan = RatePlan::with('roomType')->findOrFail($ratePlanId);
 
-        if (! $this->access->canAccessHotel($request->user('admin'), $ratePlan->roomType->hotel_id)) {
+        if (! $this->adminCanAccessHotel($request, $ratePlan->roomType->hotel_id)) {
             throw new HttpException(404, 'Not found.');
         }
     }

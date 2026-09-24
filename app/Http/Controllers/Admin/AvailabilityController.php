@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\AuthorizesAdminPanel;
 use App\Http\Resources\AvailabilityResource;
 use App\Models\Availability;
 use App\Models\RoomType;
@@ -17,12 +18,12 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  */
 class AvailabilityController extends Controller
 {
+    use AuthorizesAdminPanel;
+
     public function __construct(private readonly AccessService $access) {}
 
     public function index(Request $request): JsonResponse
     {
-        $admin = $request->user('admin');
-
         $query = Availability::with('roomType')
             ->when($request->query('roomTypeId'), fn ($q, $id) => $q->where('room_type_id', $id))
             ->when($request->query('from'), fn ($q, $from) => $q->where('date', '>=', $from))
@@ -30,7 +31,7 @@ class AvailabilityController extends Controller
             ->orderBy('date');
 
         $rows = $query->get()
-            ->filter(fn (Availability $row) => $this->access->canAccessHotel($admin, $row->roomType->hotel_id))
+            ->filter(fn (Availability $row) => $this->adminCanAccessHotel($request, $row->roomType->hotel_id))
             ->values();
 
         return response()->json(['availabilities' => AvailabilityResource::collection($rows)]);
@@ -70,10 +71,7 @@ class AvailabilityController extends Controller
     public function destroy(Request $request, Availability $availability): JsonResponse
     {
         $this->authorizeScope($request, $availability);
-
-        if (! $this->access->isGlobal($request->user('admin'))) {
-            throw new HttpException(403, 'Only a global seat can do this.');
-        }
+        $this->assertGlobalSeat($request);
 
         $availability->delete();
 
@@ -110,7 +108,7 @@ class AvailabilityController extends Controller
     {
         $availability->loadMissing('roomType');
 
-        if (! $this->access->canAccessHotel($request->user('admin'), $availability->roomType->hotel_id)) {
+        if (! $this->adminCanAccessHotel($request, $availability->roomType->hotel_id)) {
             throw new HttpException(404, 'Not found.');
         }
     }
@@ -119,7 +117,7 @@ class AvailabilityController extends Controller
     {
         $roomType = RoomType::query()->findOrFail($roomTypeId);
 
-        if (! $this->access->canAccessHotel($request->user('admin'), $roomType->hotel_id)) {
+        if (! $this->adminCanAccessHotel($request, $roomType->hotel_id)) {
             throw new HttpException(404, 'Not found.');
         }
     }

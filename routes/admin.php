@@ -58,21 +58,27 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
     Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.store');
 });
 
-Route::group(['middleware' => 'auth:admin', 'prefix' => 'admin', 'as' => 'admin.'], function () {
-    Route::get('/me', [AuthenticatedSessionController::class, 'show'])->name('me');
-    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+// CMS catalog routes accept either the admin or developer guard so a
+// developer session can open Destinations / Hotels / Rooms without a
+// fake "Unauthenticated." 401 (SPA was treating that as logout).
+// Session endpoints (/me, /logout, password) stay admin-only.
+Route::group(['middleware' => 'auth:admin,developer', 'prefix' => 'admin', 'as' => 'admin.'], function () {
+    Route::middleware('auth:admin')->group(function () {
+        Route::get('/me', [AuthenticatedSessionController::class, 'show'])->name('me');
+        Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
-    Route::get('/verify-email', EmailVerificationPromptController::class)->name('verification.notice');
-    Route::get('/verify-email/{id}/{hash}', VerifyEmailController::class)
-        ->middleware(['signed', 'throttle:6,1'])
-        ->name('verification.verify');
-    Route::post('/email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
-        ->middleware('throttle:6,1')
-        ->name('verification.send');
+        Route::get('/verify-email', EmailVerificationPromptController::class)->name('verification.notice');
+        Route::get('/verify-email/{id}/{hash}', VerifyEmailController::class)
+            ->middleware(['signed', 'throttle:6,1'])
+            ->name('verification.verify');
+        Route::post('/email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
+            ->middleware('throttle:6,1')
+            ->name('verification.send');
 
-    Route::get('/confirm-password', [ConfirmablePasswordController::class, 'show'])->name('password.confirm');
-    Route::post('/confirm-password', [ConfirmablePasswordController::class, 'store']);
-    Route::put('/password', [PasswordController::class, 'update'])->name('password.update');
+        Route::get('/confirm-password', [ConfirmablePasswordController::class, 'show'])->name('password.confirm');
+        Route::post('/confirm-password', [ConfirmablePasswordController::class, 'store']);
+        Route::put('/password', [PasswordController::class, 'update'])->name('password.update');
+    });
 
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])
         ->middleware('permission:dashboard')
@@ -165,7 +171,8 @@ Route::group(['middleware' => 'auth:admin', 'prefix' => 'admin', 'as' => 'admin.
     });
 
     // People — org admin assigns manager / hotel desks (seats = packages-as-roles).
-    Route::middleware('permission:users')->group(function () {
+    // Keep admin-guard only: developers manage accounts via /developer/admins.
+    Route::middleware(['auth:admin', 'permission:users'])->group(function () {
         Route::get('/seats', [TeamController::class, 'seats'])->name('seats.index');
         Route::get('/team', [TeamController::class, 'index'])->name('team.index');
         Route::post('/team', [TeamController::class, 'store'])->name('team.store');

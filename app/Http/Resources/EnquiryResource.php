@@ -17,6 +17,12 @@ class EnquiryResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'locationId' => $this->location_id,
+            'location' => $this->whenLoaded('location', fn () => $this->location ? [
+                'id' => $this->location->id,
+                'name' => $this->location->name,
+                'slug' => $this->location->slug,
+            ] : null),
             'name' => $this->name,
             'email' => $this->email,
             'phone' => $this->phone,

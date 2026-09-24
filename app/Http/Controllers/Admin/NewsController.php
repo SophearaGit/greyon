@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\AuthorizesAdminPanel;
 use App\Http\Resources\NewsResource;
 use App\Models\News;
 use App\Services\AccessService;
@@ -16,6 +17,8 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  */
 class NewsController extends Controller
 {
+    use AuthorizesAdminPanel;
+
     public function __construct(private readonly AccessService $access) {}
 
     public function index(): JsonResponse
@@ -46,9 +49,7 @@ class NewsController extends Controller
 
     public function destroy(Request $request, News $news): JsonResponse
     {
-        if (! $this->access->isGlobal($request->user('admin'))) {
-            throw new HttpException(403, 'Only a global seat can do this.');
-        }
+        $this->assertGlobalSeat($request);
 
         $news->delete();
 

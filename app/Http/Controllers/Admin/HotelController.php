@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\AuthorizesAdminPanel;
 use App\Http\Resources\HotelResource;
 use App\Models\Admin;
 use App\Models\Hotel;
@@ -56,15 +57,15 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  */
 class HotelController extends Controller
 {
+    use AuthorizesAdminPanel;
+
     public function __construct(private readonly AccessService $access) {}
 
     public function index(Request $request): JsonResponse
     {
-        $admin = $request->user('admin');
-
         $hotels = Hotel::with('location')
             ->get()
-            ->filter(fn (Hotel $hotel) => $this->access->canAccessHotel($admin, $hotel->id))
+            ->filter(fn (Hotel $hotel) => $this->adminCanAccessHotel($request, $hotel->id))
             ->values();
 
         return response()->json(['hotels' => HotelResource::collection($hotels)]);
@@ -81,7 +82,10 @@ class HotelController extends Controller
     {
         $data = $this->validated($request);
 
-        $this->assertWithinCreateLimit($request->user('admin'), $data['location_id']);
+        $admin = $this->actingAdmin($request);
+        if ($admin) {
+            $this->assertWithinCreateLimit($admin, $data['location_id']);
+        }
 
         $hotel = Hotel::create($data);
 
@@ -102,9 +106,7 @@ class HotelController extends Controller
 
     public function destroy(Request $request, Hotel $hotel): JsonResponse
     {
-        if (! $this->access->isGlobal($request->user('admin'))) {
-            throw new HttpException(403, 'Only a global seat can do this.');
-        }
+        $this->assertGlobalSeat($request);
 
         $hotel->delete();
 
@@ -113,7 +115,7 @@ class HotelController extends Controller
 
     private function authorizeScope(Request $request, Hotel $hotel): void
     {
-        if (! $this->access->canAccessHotel($request->user('admin'), $hotel->id)) {
+        if (! $this->adminCanAccessHotel($request, $hotel->id)) {
             throw new HttpException(404, 'Not found.');
         }
     }
@@ -158,6 +160,7 @@ class HotelController extends Controller
             'coordinates' => ['sometimes', 'array'],
             'coordinates.lat' => ['nullable', 'numeric', 'between:-90,90'],
             'coordinates.lng' => ['nullable', 'numeric', 'between:-180,180'],
+            'mapEmbedUrl' => ['nullable', 'string', 'max:4096'],
             'phone' => ['nullable', 'string', 'max:50'],
             'email' => ['nullable', 'email', 'max:255'],
             'heroImage' => ['nullable', 'string', 'max:2048'],
@@ -194,6 +197,7 @@ class HotelController extends Controller
             'locationId' => 'location_id',
             'shortDescription' => 'short_description',
             'heroImage' => 'hero_image',
+            'mapEmbedUrl' => 'map_embed_url',
             'checkInTime' => 'check_in_time',
             'checkOutTime' => 'check_out_time',
             'seoTitle' => 'seo_title',

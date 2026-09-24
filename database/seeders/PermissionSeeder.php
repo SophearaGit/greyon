@@ -39,14 +39,15 @@ class PermissionSeeder extends Seeder
             }
         }
 
-        // Richer location capabilities used by the SPA / AccessService.
+        // Richer destination capabilities used by the SPA / AccessService.
         $locations = Feature::where('key', 'locations')->first();
         if ($locations) {
             $extras = [
-                ['locations_managers', 'Location managers', 'Assign managers to destinations', 10],
-                ['locations_hotels', 'Hotels under locations', 'Link hotels to destinations', 11],
-                ['locations_publish', 'Publish destinations', 'Publish / archive location pages', 12],
-                ['locations_seo', 'Location SEO', 'Per-destination SEO fields', 13],
+                ['locations_detail', 'Destination detail hub', 'Open a destination and manage its hotels & room types in one place', 9],
+                ['locations_managers', 'Destination managers', 'Assign managers to destinations', 10],
+                ['locations_hotels', 'Hotels under destinations', 'Create and nest hotels under a destination', 11],
+                ['locations_publish', 'Publish destinations', 'Publish / archive destination pages', 12],
+                ['locations_seo', 'Destination SEO', 'Per-destination SEO fields', 13],
             ];
             foreach ($extras as [$key, $label, $description, $sort]) {
                 Permission::updateOrCreate(
@@ -58,6 +59,20 @@ class PermissionSeeder extends Seeder
                         'sort_order' => $sort,
                     ]
                 );
+            }
+
+            // Friendlier CRUD labels for the destinations module.
+            $crudLabels = [
+                'locations_list' => ['Destinations: List / view', 'See destinations and open the detail hub'],
+                'locations_create' => ['Destinations: Create', 'Add new destinations'],
+                'locations_update' => ['Destinations: Update', 'Edit destination details and hero'],
+                'locations_delete' => ['Destinations: Delete', 'Remove destinations'],
+            ];
+            foreach ($crudLabels as $key => [$label, $description]) {
+                Permission::where('key', $key)->update([
+                    'label' => $label,
+                    'description' => $description,
+                ]);
             }
         }
     }

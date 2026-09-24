@@ -15,7 +15,7 @@ class FeatureSeeder extends Seeder
     {
         $adminParents = [
             ['dashboard', 'Dashboard', 'Admin home / ops overview'],
-            ['locations', 'Locations', 'Destination CMS — parent module for location permissions'],
+            ['locations', 'Destinations', 'Destination CMS — list, detail hub (hotels & rooms under a city), publish'],
             ['hotels', 'Hotels', 'Hotel CMS (linked to locations via locationId)'],
             ['rooms', 'Room types', 'Rooms per hotel'],
             ['rates', 'Rates & availability', 'Inventory and nightly pricing'],

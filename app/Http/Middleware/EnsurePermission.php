@@ -24,6 +24,12 @@ class EnsurePermission
 
     public function handle(Request $request, Closure $next, string $perm): Response
     {
+        // Developers manage the whole catalog — being on the developer
+        // guard *is* the gate (same rule as routes/developer.php).
+        if ($request->user('developer')) {
+            return $next($request);
+        }
+
         $admin = $request->user('admin');
 
         if (! $admin) {

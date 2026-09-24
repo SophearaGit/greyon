@@ -32,6 +32,7 @@ class HotelResource extends JsonResource
                 'lat' => $this->lat !== null ? (float) $this->lat : null,
                 'lng' => $this->lng !== null ? (float) $this->lng : null,
             ],
+            'mapEmbedUrl' => $this->map_embed_url,
             'phone' => $this->phone,
             'email' => $this->email,
             'heroImage' => $this->hero_image,

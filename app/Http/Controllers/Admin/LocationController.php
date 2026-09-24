@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\AuthorizesAdminPanel;
 use App\Http\Resources\LocationResource;
 use App\Models\Admin;
 use App\Models\Location;
@@ -89,15 +90,15 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  */
 class LocationController extends Controller
 {
+    use AuthorizesAdminPanel;
+
     public function __construct(private readonly AccessService $access) {}
 
     public function index(Request $request): JsonResponse
     {
-        $admin = $request->user('admin');
-
         $locations = Location::withCount('hotels')
             ->get()
-            ->filter(fn (Location $location) => $this->access->canAccessLocation($admin, $location->id))
+            ->filter(fn (Location $location) => $this->adminCanAccessLocation($request, $location->id))
             ->values();
 
         return response()->json(['locations' => LocationResource::collection($locations)]);
@@ -112,13 +113,14 @@ class LocationController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $admin = $request->user('admin');
-
-        $this->assertWithinCreateLimit($admin);
+        $admin = $this->actingAdmin($request);
+        if ($admin) {
+            $this->assertWithinCreateLimit($admin);
+        }
 
         $location = Location::create([
             ...$this->validated($request),
-            'created_by_admin_id' => $admin->id,
+            'created_by_admin_id' => $admin?->id,
         ]);
 
         // Re-fetch so DB column defaults not present in the request
@@ -134,7 +136,10 @@ class LocationController extends Controller
 
         $data = $this->validated($request, $location);
 
-        $this->authorizeFields($request->user('admin'), $data);
+        $admin = $this->actingAdmin($request);
+        if ($admin) {
+            $this->authorizeFields($admin, $data);
+        }
 
         $location->update($data);
 
@@ -143,7 +148,7 @@ class LocationController extends Controller
 
     public function destroy(Request $request, Location $location): JsonResponse
     {
-        $this->assertGlobal($request);
+        $this->assertGlobalSeat($request);
 
         if ($location->hotels()->exists()) {
             throw new HttpException(400, 'Cannot delete a location that still has hotels under it.');
@@ -156,15 +161,8 @@ class LocationController extends Controller
 
     private function authorizeScope(Request $request, Location $location): void
     {
-        if (! $this->access->canAccessLocation($request->user('admin'), $location->id)) {
+        if (! $this->adminCanAccessLocation($request, $location->id)) {
             throw new HttpException(404, 'Not found.');
-        }
-    }
-
-    private function assertGlobal(Request $request): void
-    {
-        if (! $this->access->isGlobal($request->user('admin'))) {
-            throw new HttpException(403, 'Only a global seat can do this.');
         }
     }
 

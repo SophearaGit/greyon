@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\AuthorizesAdminPanel;
 use App\Http\Resources\RatePlanResource;
 use App\Models\RatePlan;
 use App\Models\RoomType;
@@ -29,15 +30,15 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  */
 class RatePlanController extends Controller
 {
+    use AuthorizesAdminPanel;
+
     public function __construct(private readonly AccessService $access) {}
 
     public function index(Request $request): JsonResponse
     {
-        $admin = $request->user('admin');
-
         $ratePlans = RatePlan::with('roomType')
             ->get()
-            ->filter(fn (RatePlan $ratePlan) => $this->access->canAccessHotel($admin, $ratePlan->roomType->hotel_id))
+            ->filter(fn (RatePlan $ratePlan) => $this->adminCanAccessHotel($request, $ratePlan->roomType->hotel_id))
             ->values();
 
         return response()->json(['ratePlans' => RatePlanResource::collection($ratePlans)]);
@@ -74,9 +75,7 @@ class RatePlanController extends Controller
 
     public function destroy(Request $request, RatePlan $ratePlan): JsonResponse
     {
-        if (! $this->access->isGlobal($request->user('admin'))) {
-            throw new HttpException(403, 'Only a global seat can do this.');
-        }
+        $this->assertGlobalSeat($request);
 
         $ratePlan->delete();
 
@@ -87,7 +86,7 @@ class RatePlanController extends Controller
     {
         $ratePlan->loadMissing('roomType');
 
-        if (! $this->access->canAccessHotel($request->user('admin'), $ratePlan->roomType->hotel_id)) {
+        if (! $this->adminCanAccessHotel($request, $ratePlan->roomType->hotel_id)) {
             throw new HttpException(404, 'Not found.');
         }
     }

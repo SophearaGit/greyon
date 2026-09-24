@@ -46,7 +46,7 @@ class CatalogController extends Controller
             $hotels = Hotel::query()
                 ->select([
                     'id', 'location_id', 'name', 'slug', 'short_description',
-                    'description', 'address', 'lat', 'lng', 'phone', 'email',
+                    'description', 'address', 'lat', 'lng', 'map_embed_url', 'phone', 'email',
                     'hero_image', 'amenities', 'policies', 'check_in_time',
                     'check_out_time', 'featured', 'status', 'seo_title',
                     'seo_description',

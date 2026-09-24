@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\AuthorizesAdminPanel;
 use App\Http\Resources\BookingResource;
 use App\Models\Booking;
 use App\Models\Hotel;
@@ -21,6 +22,8 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  */
 class BookingController extends Controller
 {
+    use AuthorizesAdminPanel;
+
     public function __construct(
         private readonly AccessService $access,
         private readonly BookingService $bookings,
@@ -29,8 +32,6 @@ class BookingController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $admin = $request->user('admin');
-
         $rows = Booking::query()
             ->when($request->query('status'), fn ($q, $status) => $q->where('status', $status))
             ->when($request->query('q'), function ($q, $term) {
@@ -43,7 +44,7 @@ class BookingController extends Controller
             })
             ->orderByDesc('created_at')
             ->get()
-            ->filter(fn (Booking $booking) => $this->access->canAccessHotel($admin, $booking->hotel_id))
+            ->filter(fn (Booking $booking) => $this->adminCanAccessHotel($request, $booking->hotel_id))
             ->values();
 
         return response()->json(['bookings' => BookingResource::collection($rows)]);
@@ -95,14 +96,14 @@ class BookingController extends Controller
 
     private function authorizeScope(Request $request, Booking $booking): void
     {
-        if (! $this->access->canAccessHotel($request->user('admin'), $booking->hotel_id)) {
+        if (! $this->adminCanAccessHotel($request, $booking->hotel_id)) {
             throw new HttpException(404, 'Not found.');
         }
     }
 
     private function assertHotelInScope(Request $request, int $hotelId): void
     {
-        if (! $this->access->canAccessHotel($request->user('admin'), $hotelId)) {
+        if (! $this->adminCanAccessHotel($request, $hotelId)) {
             throw new HttpException(404, 'Not found.');
         }
     }

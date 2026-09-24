@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\AuthorizesAdminPanel;
 use App\Http\Resources\RoomTypeResource;
 use App\Models\Hotel;
 use App\Models\RoomType;
@@ -35,15 +36,15 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  */
 class RoomTypeController extends Controller
 {
+    use AuthorizesAdminPanel;
+
     public function __construct(private readonly AccessService $access) {}
 
     public function index(Request $request): JsonResponse
     {
-        $admin = $request->user('admin');
-
         $roomTypes = RoomType::with('hotel')
             ->get()
-            ->filter(fn (RoomType $roomType) => $this->access->canAccessHotel($admin, $roomType->hotel_id))
+            ->filter(fn (RoomType $roomType) => $this->adminCanAccessHotel($request, $roomType->hotel_id))
             ->values();
 
         return response()->json(['roomTypes' => RoomTypeResource::collection($roomTypes)]);
@@ -78,9 +79,7 @@ class RoomTypeController extends Controller
 
     public function destroy(Request $request, RoomType $roomType): JsonResponse
     {
-        if (! $this->access->isGlobal($request->user('admin'))) {
-            throw new HttpException(403, 'Only a global seat can do this.');
-        }
+        $this->assertGlobalSeat($request);
 
         $roomType->delete();
 
@@ -89,7 +88,7 @@ class RoomTypeController extends Controller
 
     private function authorizeScope(Request $request, RoomType $roomType): void
     {
-        if (! $this->access->canAccessHotel($request->user('admin'), $roomType->hotel_id)) {
+        if (! $this->adminCanAccessHotel($request, $roomType->hotel_id)) {
             throw new HttpException(404, 'Not found.');
         }
     }

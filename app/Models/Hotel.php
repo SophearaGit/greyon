@@ -25,6 +25,7 @@ class Hotel extends Model
         'address',
         'lat',
         'lng',
+        'map_embed_url',
         'phone',
         'email',
         'hero_image',

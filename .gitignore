@@ -26,3 +26,9 @@ Thumbs.db
 # Personal local workflow scripts — machine-specific, not shared with the team.
 /pullmain.bat
 /pushraa.bat
+
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitignore
+/storage/logs/*
+!/storage/logs/.gitignore
+

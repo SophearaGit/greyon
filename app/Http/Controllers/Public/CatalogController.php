@@ -82,6 +82,7 @@ class CatalogController extends Controller
                 ->get();
 
             $news = News::query()
+                ->with('location')
                 ->where('status', 'published')
                 ->orderByDesc('published_at')
                 ->orderByDesc('id')

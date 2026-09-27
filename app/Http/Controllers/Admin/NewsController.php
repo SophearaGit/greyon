@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Concerns\AuthorizesAdminPanel;
 use App\Http\Resources\NewsResource;
+use App\Models\Location;
 use App\Models\News;
 use App\Services\AccessService;
 use Illuminate\Http\JsonResponse;
@@ -13,7 +14,7 @@ use Illuminate\Validation\Rule;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
- * Spec "News" — perm `news`. Global CMS content (no hotel scope).
+ * Spec "News" — perm `news`. Optionally scoped to a destination.
  */
 class NewsController extends Controller
 {
@@ -21,34 +22,67 @@ class NewsController extends Controller
 
     public function __construct(private readonly AccessService $access) {}
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $articles = News::query()->orderByDesc('published_at')->orderByDesc('id')->get();
+        $locationId = $request->query('locationId');
+
+        $articles = News::query()
+            ->with('location')
+            ->when($locationId !== null && $locationId !== '', function ($q) use ($locationId) {
+                if ($locationId === 'none') {
+                    $q->whereNull('location_id');
+                } else {
+                    $q->where('location_id', (int) $locationId);
+                }
+            })
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
+            ->get()
+            ->filter(fn (News $article) => $this->canSee($request, $article))
+            ->values();
 
         return response()->json(['news' => NewsResource::collection($articles)]);
     }
 
-    public function show(News $news): JsonResponse
+    public function show(Request $request, News $news): JsonResponse
     {
-        return response()->json(['news' => new NewsResource($news)]);
+        $this->authorizeSee($request, $news);
+
+        return response()->json(['news' => new NewsResource($news->load('location'))]);
     }
 
     public function store(Request $request): JsonResponse
     {
-        $article = News::create($this->validated($request));
+        $data = $this->validated($request);
+        $this->assertLocationScope($request, $data['location_id'] ?? null);
 
-        return response()->json(['news' => new NewsResource($article->refresh())], 201);
+        $article = News::create($data);
+
+        return response()->json([
+            'news' => new NewsResource($article->refresh()->load('location')),
+        ], 201);
     }
 
     public function update(Request $request, News $news): JsonResponse
     {
-        $news->update($this->validated($request, $news));
+        $this->authorizeSee($request, $news);
 
-        return response()->json(['news' => new NewsResource($news->refresh())]);
+        $data = $this->validated($request, $news);
+        $locationId = array_key_exists('location_id', $data)
+            ? $data['location_id']
+            : $news->location_id;
+        $this->assertLocationScope($request, $locationId);
+
+        $news->update($data);
+
+        return response()->json([
+            'news' => new NewsResource($news->refresh()->load('location')),
+        ]);
     }
 
     public function destroy(Request $request, News $news): JsonResponse
     {
+        $this->authorizeSee($request, $news);
         $this->assertGlobalSeat($request);
 
         $news->delete();
@@ -62,6 +96,7 @@ class NewsController extends Controller
     private function validated(Request $request, ?News $news = null): array
     {
         $data = $request->validate([
+            'locationId' => ['nullable', 'integer', Rule::exists(Location::class, 'id')],
             'title' => [$news ? 'sometimes' : 'required', 'string', 'max:255'],
             'slug' => [$news ? 'sometimes' : 'required', 'string', 'max:255', Rule::unique('news', 'slug')->ignore($news?->id)],
             'coverImage' => [$news ? 'sometimes' : 'required', 'string', 'max:2048'],
@@ -83,6 +118,7 @@ class NewsController extends Controller
     private function mapCamel(array $data): array
     {
         $map = [
+            'locationId' => 'location_id',
             'coverImage' => 'cover_image',
             'publishedAt' => 'published_at',
             'seoTitle' => 'seo_title',
@@ -97,5 +133,49 @@ class NewsController extends Controller
         }
 
         return $data;
+    }
+
+    private function authorizeSee(Request $request, News $news): void
+    {
+        if (! $this->canSee($request, $news)) {
+            throw new HttpException(404, 'Not found.');
+        }
+    }
+
+    private function canSee(Request $request, News $news): bool
+    {
+        if ($this->isDeveloper($request)) {
+            return true;
+        }
+
+        $admin = $this->actingAdmin($request);
+        if (! $admin) {
+            return false;
+        }
+
+        if ($this->access->isGlobal($admin)) {
+            return true;
+        }
+
+        // Site-wide stories (no destination) — global seats only.
+        if ($news->location_id === null) {
+            return false;
+        }
+
+        return $this->access->canAccessLocation($admin, $news->location_id);
+    }
+
+    private function assertLocationScope(Request $request, mixed $locationId): void
+    {
+        if ($locationId === null) {
+            // Creating/editing site-wide news requires a global seat.
+            $this->assertGlobalSeat($request);
+
+            return;
+        }
+
+        if (! $this->adminCanAccessLocation($request, $locationId)) {
+            throw new HttpException(404, 'Not found.');
+        }
     }
 }

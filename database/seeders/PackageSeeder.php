@@ -9,92 +9,74 @@ use App\Models\Role;
 use Illuminate\Database\Seeder;
 
 /**
- * 4 system packages an admin can be assigned (see AdminSeeder). System
+ * System packages an admin can be assigned (see AdminSeeder). System
  * packages can't be deleted (App\Http\Controllers\Developer\PackageController).
  *
- * Round 12 (2026-09-22) replaced the previous 4-package lineup (`Admin
- * · Full Suite`, `Admin · Starter`, `Manager · Content+`, `Hotel Admin
- * · Core`) outright, per the user's ask:
+ * Shape mirrors the live local DB, with destination *create* denied on
+ * every seeded seat (Admin + city managers):
  *
- *   - "dev package with full access" maps to the separate `developers`
- *     guard/table (App\Models\Developer), which never goes through
- *     packages at all — it always has full, unconditional access (see
- *     AccessService's class docblock: "Developer accounts never go
- *     through here at all"). So there is deliberately no "dev" package
- *     here.
- *   - "admin package can add location and hotel limit of 3" is the
- *     `Admin` package below — every admin-category feature and every
- *     permission, but capped at 3 locations and 3 hotels per location.
- *     Unlike before this round, there is no longer an *uncapped* admin
- *     tier seeded — `Admin` is the only admin-role package, and it's
- *     capped by default.
- *   - **Added 2026-09-23**: the `Admin` package is also capped at 3
- *     people (`managers` limit) addable via People/Team
- *     (App\Http\Controllers\Admin\TeamController) — same "3, and we
- *     may raise it later" shape as the locations/hotels caps above.
- *     Raising it later is just editing this `PackageLimit` row (or
- *     via the developer package-builder UI) — nothing else to change.
- *   - "manager (city) — no adding properties, only others" is the 3
- *     `Manager · <City>` packages. A package doesn't carry a location
- *     itself — the actual scope comes from `location_ids` on that
- *     admin's package *assignment* (see AdminSeeder, and
- *     AccessService's class docblock) — so these 3 are functionally
- *     identical (same role, same features, same permissions, same
- *     limits) and differ only by name. They exist as 3 separate rows
- *     rather than 1 shared package purely so the developer-panel
- *     package picker reads unambiguously per city; assigning the wrong
- *     one of the 3 to an admin would carry the wrong label but not by
- *     itself grant the wrong location — that still depends on the
- *     `location_ids` set at assignment time.
- *   - **Clarified after the first pass (same day)**: "no adding
- *     properties" only meant *locations* (new destinations) — a
- *     manager *can* add hotels within their own location, capped at 3
- *     (same cap `Admin` gets). So `locations` stays capped at `0`
- *     (can't create a new destination at all) but
- *     `hotels_per_location` is `3`, not `0`.
+ *   - `Admin` — main org seat. Every admin feature except `settings`,
+ *     plus public product surfaces. Caps: locations 0 (no new
+ *     destinations), 3 hotels per location, 3 managers. Permission
+ *     `locations_create` is intentionally withheld.
+ *   - `Manager · <City>` × 3 — same feature set as live Manager rows,
+ *     same "no create destination" rule (`locations` limit 0, no
+ *     `locations_create`). Hotels still capped at 3 per location.
+ *
+ * Permissions are derived from the package's features, minus any
+ * explicitly denied keys.
  */
 class PackageSeeder extends Seeder
 {
     public function run(): void
     {
-        $adminFeatureKeys = Feature::where('category', 'admin')->pluck('key')->all();
-        $allPermissionKeys = Permission::pluck('key')->all();
+        // Main org package — matches packages.id=1 in the live DB.
+        // `settings` exists as a feature but is not on the Admin seat.
+        $adminFeatureKeys = Feature::query()
+            ->where(function ($q) {
+                $q->where('category', 'admin')
+                    ->where('key', '!=', 'settings');
+            })
+            ->orWhere('category', 'public')
+            ->pluck('key')
+            ->all();
 
         $this->makePackage(
             'Admin',
-            'Full admin-panel access, capped to 3 locations with 3 hotels each.',
+            'Full admin-panel access — can manage existing destinations and add up to 3 hotels each; cannot create new destinations.',
             null,
             ['admin'],
             $adminFeatureKeys,
-            limits: ['locations' => 3, 'hotels_per_location' => 3, 'managers' => 3],
-            permissionKeys: $allPermissionKeys,
+            limits: ['locations' => 0, 'hotels_per_location' => 3, 'managers' => 3],
+            denyPermissionKeys: ['locations_create'],
         );
 
-        // Same role/features/permissions on all 3 — only the name (and,
-        // at assignment time in AdminSeeder, the location_ids) differs.
-        // `locations: 0` blocks creating a new *destination* outright —
-        // AccessService::effectiveLimit() returns 0, and
-        // LocationController blocks as soon as `used >= limit`, i.e.
-        // immediately. `hotels_per_location: 3` means a manager *can*
-        // add hotels within their own location — same cap `Admin` gets
-        // — while every other locations/hotels capability (view, edit,
-        // publish, SEO, and the rooms/rates/bookings/news that live
-        // under them) is fully available either way. That's "no adding
-        // [new] properties [destinations], only others [hotels + the
-        // rest]" — clarified same-day after the first pass shipped with
-        // `hotels_per_location: 0` too.
-        $managerFeatureKeys = ['dashboard', 'locations', 'hotels', 'rooms', 'rates', 'bookings', 'news'];
+        // City manager seats — feature set taken from live Manager · *
+        // rows (enquiries / media / features included; no public keys,
+        // no users / settings). Destination create denied same as Admin.
+        $managerFeatureKeys = [
+            'dashboard',
+            'locations',
+            'hotels',
+            'rooms',
+            'rates',
+            'bookings',
+            'news',
+            'enquiries',
+            'media',
+            'features',
+        ];
         $managerLimits = ['locations' => 0, 'hotels_per_location' => 3];
 
         foreach (['Phnom Penh', 'Kampot', 'Sihanoukville'] as $city) {
             $this->makePackage(
                 "Manager · {$city}",
-                "Location-scoped content, rooms, rates, bookings and news for {$city} — can add up to 3 hotels here, cannot add new locations.",
+                "Location-scoped content, rooms, rates, bookings and news for {$city} — can add up to 3 hotels here, cannot create new destinations.",
                 null,
                 ['manager'],
                 $managerFeatureKeys,
                 limits: $managerLimits,
-                permissionKeys: $allPermissionKeys,
+                denyPermissionKeys: ['locations_create'],
             );
         }
     }
@@ -103,7 +85,7 @@ class PackageSeeder extends Seeder
      * @param  list<string>  $roleNames
      * @param  list<string>  $featureKeys
      * @param  array<string, int>  $limits  resourceKey => maxCount
-     * @param  list<string>  $permissionKeys
+     * @param  list<string>  $denyPermissionKeys  withheld even if under a granted feature
      */
     private function makePackage(
         string $name,
@@ -112,16 +94,35 @@ class PackageSeeder extends Seeder
         array $roleNames,
         array $featureKeys,
         array $limits = [],
-        array $permissionKeys = [],
+        array $denyPermissionKeys = [],
     ): void {
-        $package = Package::firstOrCreate(
+        $package = Package::updateOrCreate(
             ['name' => $name],
-            ['description' => $description, 'price_note' => $priceNote, 'is_system' => true]
+            [
+                'description' => $description,
+                'price_note' => $priceNote,
+                'is_system' => true,
+            ]
         );
 
         $package->roles()->sync(Role::whereIn('name', $roleNames)->pluck('id'));
         $package->features()->sync(Feature::whereIn('key', $featureKeys)->pluck('id'));
-        $package->permissions()->sync(Permission::whereIn('key', $permissionKeys)->pluck('id'));
+
+        $permissionIds = Permission::query()
+            ->whereHas('feature', fn ($q) => $q->whereIn('key', $featureKeys))
+            ->when(
+                $denyPermissionKeys !== [],
+                fn ($q) => $q->whereNotIn('key', $denyPermissionKeys)
+            )
+            ->pluck('id');
+        $package->permissions()->sync($permissionIds);
+
+        $keepKeys = array_keys($limits);
+        if ($keepKeys === []) {
+            $package->limits()->delete();
+        } else {
+            $package->limits()->whereNotIn('resource_key', $keepKeys)->delete();
+        }
 
         foreach ($limits as $resourceKey => $maxCount) {
             $package->limits()->updateOrCreate(

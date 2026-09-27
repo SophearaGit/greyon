@@ -17,6 +17,8 @@ class NewsResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'locationId' => $this->location_id,
+            'locationName' => $this->whenLoaded('location', fn () => $this->location?->name),
             'title' => $this->title,
             'slug' => $this->slug,
             'coverImage' => $this->cover_image,

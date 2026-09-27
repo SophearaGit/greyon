@@ -15,6 +15,7 @@ class NewsController extends Controller
     public function index(): JsonResponse
     {
         $articles = News::query()
+            ->with('location')
             ->where('status', 'published')
             ->orderByDesc('published_at')
             ->orderByDesc('id')
@@ -26,6 +27,7 @@ class NewsController extends Controller
     public function show(string $slug): JsonResponse
     {
         $article = News::query()
+            ->with('location')
             ->where('slug', $slug)
             ->where('status', 'published')
             ->firstOrFail();

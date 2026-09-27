@@ -94,6 +94,15 @@ class BookingController extends Controller
         return response()->json(['booking' => new BookingResource($booking->refresh())]);
     }
 
+    public function destroy(Request $request, Booking $booking): JsonResponse
+    {
+        $this->authorizeScope($request, $booking);
+
+        $booking->delete();
+
+        return response()->json(['message' => 'Booking deleted.']);
+    }
+
     private function authorizeScope(Request $request, Booking $booking): void
     {
         if (! $this->adminCanAccessHotel($request, $booking->hotel_id)) {

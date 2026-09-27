@@ -12,28 +12,23 @@ use Illuminate\Database\Seeder;
  * DeveloperSeeder — a separate table now). Must run after
  * PackageSeeder and LocationSeeder.
  *
- * Round 12 (2026-09-22): matches the new 4-package lineup — one global
- * `Admin` (capped at 3 locations / 3 hotels per location) plus one
- * demo account per `Manager · <City>` package, each with `location_ids`
- * on the *assignment* resolved from the matching seeded Location so
- * the package's name and its actual scope always agree (see
- * PackageSeeder's docblock — the package itself doesn't carry a
- * location).
+ * Main seat for the org admin is the live `Admin` package
+ * (`packages.name = Admin`) — same row PackageSeeder upserts from the
+ * database shape. City managers each get their matching
+ * `Manager · <City>` package with `location_ids` on the assignment.
  *
- * Dropped from the previous lineup: `starter@` (the old, separately
- * capped admin tier no longer exists — `Admin` is capped by default
- * now), `sr@` (Siem Reap has no dedicated manager package in this
- * round's ask — the Siem Reap location itself is still seeded, just
- * not exclusively managed by a demo account anymore), `hotel@` /
- * `angkor@` (the `Hotel Admin · Core` package was dropped, not
- * replaced — the `hotel_admin` role still exists in RoleSeeder and a
- * developer can still build a package around it, it just has no seeded
- * demo package/account right now).
+ * Production-safe: existing accounts keep their password; only new
+ * demo rows get `password`. Re-running still re-attaches the intended
+ * main package (replaces the admin's package pivot).
+ *
+ * On production, prefer `PackageSeeder` alone unless you intentionally
+ * want demo seats re-linked. Do not run full `db:seed` against prod.
  */
 class AdminSeeder extends Seeder
 {
     public function run(): void
     {
+        // Main org package — follow whatever PackageSeeder named "Admin".
         $this->makeAdmin('admin@greyon.com.kh', 'Admin', 'Admin');
 
         $this->makeAdmin('pp@greyon.com.kh', 'Phnom Penh Manager', 'Manager · Phnom Penh', locationSlug: 'phnom-penh');
@@ -53,15 +48,25 @@ class AdminSeeder extends Seeder
             ]
         );
 
+        // Keep name/status in sync for demo seats without resetting password.
+        if (! $admin->wasRecentlyCreated) {
+            $admin->forceFill([
+                'name' => $name,
+                'status' => 'active',
+                'email_verified_at' => $admin->email_verified_at ?? now(),
+            ])->save();
+        }
+
         $package = Package::where('name', $packageName)->firstOrFail();
 
         $locationIds = $locationSlug === null
-            ? []
+            ? null
             : [Location::where('slug', $locationSlug)->firstOrFail()->id];
 
-        $admin->packages()->syncWithoutDetaching([
+        // Replace seats so the seeded package is always the main (only) one.
+        $admin->packages()->sync([
             $package->id => [
-                'location_ids' => $locationIds ?: null,
+                'location_ids' => $locationIds,
                 'hotel_ids' => null,
             ],
         ]);

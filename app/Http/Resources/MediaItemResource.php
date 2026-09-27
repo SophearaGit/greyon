@@ -17,6 +17,8 @@ class MediaItemResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'locationId' => $this->location_id,
+            'hotelId' => $this->hotel_id,
             'src' => $this->src,
             'alt' => $this->alt ?? '',
             'createdByAdminId' => $this->created_by_admin_id,

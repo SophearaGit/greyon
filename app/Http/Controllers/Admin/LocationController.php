@@ -115,6 +115,9 @@ class LocationController extends Controller
     {
         $admin = $this->actingAdmin($request);
         if ($admin) {
+            if (! $this->access->hasPermission($admin, 'locations_create')) {
+                throw new HttpException(403, 'Missing permission: locations_create');
+            }
             $this->assertWithinCreateLimit($admin);
         }
 

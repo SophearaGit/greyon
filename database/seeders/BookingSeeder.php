@@ -9,6 +9,16 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
+/**
+ * No `otres-bay` booking here (removed 2026-09-29): the Sihanoukville
+ * placeholder demo hotels (Otres Bay Resort, Harbor Light Hotel, Coral
+ * Inn) were removed from HotelSeeder the same day a real client property
+ * (Greyon Hotel & Serviced Apartment, see GreyonShvSeeder) took over that
+ * destination -- see HotelSeeder's docblock. GRY-SEED02, the one seed
+ * booking that referenced Otres Bay Resort, was removed along with it;
+ * GRY-SEED01/03/04 and the GRY-DEMO* booking only ever referenced
+ * `riverside` (Phnom Penh) and are unaffected.
+ */
 class BookingSeeder extends Seeder
 {
     public function run(): void
@@ -21,17 +31,11 @@ class BookingSeeder extends Seeder
         $riversideTwin = RoomType::where('slug', 'standard-twin')
             ->whereHas('hotel', fn ($q) => $q->where('slug', 'riverside'))
             ->firstOrFail();
-        $otresDeluxe = RoomType::where('slug', 'deluxe-king')
-            ->whereHas('hotel', fn ($q) => $q->where('slug', 'otres-bay'))
-            ->firstOrFail();
 
         $flex = RatePlan::where('room_type_id', $riversideDeluxe->id)
             ->where('name', 'Flexible Rate')
             ->firstOrFail();
         $twinRate = RatePlan::where('room_type_id', $riversideTwin->id)
-            ->where('name', 'Flexible Rate')
-            ->firstOrFail();
-        $otresRate = RatePlan::where('room_type_id', $otresDeluxe->id)
             ->where('name', 'Flexible Rate')
             ->firstOrFail();
 
@@ -54,26 +58,6 @@ class BookingSeeder extends Seeder
                 'taxes_fees' => 19.50,
                 'total' => 149.50,
                 'status' => 'confirmed',
-                'source' => 'website',
-            ],
-            [
-                'reference' => 'GRY-SEED02',
-                'user_id' => $guest?->id,
-                'hotel_id' => $otresDeluxe->hotel_id,
-                'room_type_id' => $otresDeluxe->id,
-                'rate_plan_id' => $otresRate->id,
-                'check_in' => now()->subDays(20)->toDateString(),
-                'check_out' => now()->subDays(17)->toDateString(),
-                'rooms' => 1,
-                'adults' => 2,
-                'children' => 1,
-                'guest_full_name' => $guest?->name ?? 'Test Guest',
-                'guest_email' => $guest?->email ?? 'guest@greyon.test',
-                'guest_phone' => '+855 23 000 111',
-                'subtotal' => 210.00,
-                'taxes_fees' => 31.50,
-                'total' => 241.50,
-                'status' => 'completed',
                 'source' => 'website',
             ],
             [

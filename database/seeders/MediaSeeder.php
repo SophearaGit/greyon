@@ -17,6 +17,10 @@ class MediaSeeder extends Seeder
 {
     public function run(): void
     {
+        // No otres-bay/harbor-light/coral-inn media rows here (removed
+        // 2026-09-29, alongside those Sihanoukville placeholder demo
+        // hotels -- see HotelSeeder's docblock): each fell back to a
+        // stale caption for a hotel that no longer exists.
         $adminId = Admin::where('email', 'admin@greyon.com.kh')->value('id');
 
         $bySlug = fn (string $slug) => Location::where('slug', $slug)->value('id');
@@ -41,21 +45,6 @@ class MediaSeeder extends Seeder
                 'src' => 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1400&q=80',
                 'alt' => 'Mekong House · boutique courtyard',
                 'hotel' => 'mekong-house',
-            ],
-            [
-                'src' => 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1400&q=80',
-                'alt' => 'Otres Bay Resort · Sihanoukville beach',
-                'hotel' => 'otres-bay',
-            ],
-            [
-                'src' => 'https://images.unsplash.com/photo-1571008887538-b36bb32f4571?auto=format&fit=crop&w=1400&q=80',
-                'alt' => 'Harbor Light Hotel · pier and sunset',
-                'hotel' => 'harbor-light',
-            ],
-            [
-                'src' => 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=80',
-                'alt' => 'Coral Inn · Otres sand and shade',
-                'hotel' => 'coral-inn',
             ],
             [
                 'src' => 'https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1400&q=80',

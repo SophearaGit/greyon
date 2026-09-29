@@ -8,6 +8,15 @@ use Illuminate\Database\Seeder;
 
 /**
  * Up to 3 hotels per location (matches package limit hotels_per_location).
+ *
+ * No `sihanoukville` entry (removed 2026-09-29): a real client property
+ * (Greyon Hotel & Serviced Apartment, see GreyonShvSeeder) now occupies
+ * that destination, and `hotels_per_location` counts every hotel in a
+ * location regardless of who created it (Admin\HotelController's
+ * docblock) — keeping 3 placeholder demo hotels here alongside it would
+ * leave Sihanoukville permanently over its own cap. The 3 that used to
+ * seed here (Otres Bay Resort, Harbor Light Hotel, Coral Inn) were
+ * removed from both this seeder and the live database on the same day.
  */
 class HotelSeeder extends Seeder
 {
@@ -65,60 +74,6 @@ class HotelSeeder extends Seeder
                     'hero_image' => 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1400&q=80',
                     'gallery' => [
                         'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=1400&q=80',
-                    ],
-                ],
-            ],
-            'sihanoukville' => [
-                [
-                    'slug' => 'otres-bay',
-                    'name' => 'Otres Bay Resort',
-                    'short_description' => 'Beachfront resort on Otres with pool and spa.',
-                    'description' => 'Otres Bay Resort faces the sand — ideal for longer coastal stays.',
-                    'address' => 'Otres Beach, Sihanoukville, Cambodia',
-                    'lat' => 10.5750,
-                    'lng' => 103.5600,
-                    'phone' => '+855 34 555 0201',
-                    'email' => 'otres@greyon.com.kh',
-                    'amenities' => ['Beach access', 'Pool', 'Spa', 'Restaurant'],
-                    'featured' => true,
-                    'hero_image' => 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1400&q=80',
-                    'gallery' => [
-                        'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=80',
-                        'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=1400&q=80',
-                    ],
-                ],
-                [
-                    'slug' => 'harbor-light',
-                    'name' => 'Harbor Light Hotel',
-                    'short_description' => 'Harbor views and easy ferry links to Koh Rong.',
-                    'description' => 'Harbor Light sits near the pier for island day trips.',
-                    'address' => 'Serendipity Road, Sihanoukville, Cambodia',
-                    'lat' => 10.6100,
-                    'lng' => 103.5300,
-                    'phone' => '+855 34 555 0202',
-                    'email' => 'harbor@greyon.com.kh',
-                    'amenities' => ['Free WiFi', 'Rooftop bar', 'Ferry desk'],
-                    'featured' => false,
-                    'hero_image' => 'https://images.unsplash.com/photo-1571008887538-b36bb32f4571?auto=format&fit=crop&w=1400&q=80',
-                    'gallery' => [
-                        'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=80',
-                    ],
-                ],
-                [
-                    'slug' => 'coral-inn',
-                    'name' => 'Coral Inn',
-                    'short_description' => 'Compact beach inn for weekenders.',
-                    'description' => 'Coral Inn keeps things simple — sand, shade, and short walks to dinner.',
-                    'address' => 'Otres 2, Sihanoukville, Cambodia',
-                    'lat' => 10.5680,
-                    'lng' => 103.5550,
-                    'phone' => '+855 34 555 0203',
-                    'email' => 'coral@greyon.com.kh',
-                    'amenities' => ['Free WiFi', 'Beach chairs', 'Cafe'],
-                    'featured' => false,
-                    'hero_image' => 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=80',
-                    'gallery' => [
-                        'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1400&q=80',
                     ],
                 ],
             ],

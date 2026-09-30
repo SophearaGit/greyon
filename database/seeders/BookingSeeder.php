@@ -10,14 +10,20 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
 /**
- * No `otres-bay` booking here (removed 2026-09-29): the Sihanoukville
- * placeholder demo hotels (Otres Bay Resort, Harbor Light Hotel, Coral
- * Inn) were removed from HotelSeeder the same day a real client property
- * (Greyon Hotel & Serviced Apartment, see GreyonShvSeeder) took over that
- * destination -- see HotelSeeder's docblock. GRY-SEED02, the one seed
- * booking that referenced Otres Bay Resort, was removed along with it;
- * GRY-SEED01/03/04 and the GRY-DEMO* booking only ever referenced
- * `riverside` (Phnom Penh) and are unaffected.
+ * Re-pointed to the real property, `greyon-shv` (2026-09-30): these
+ * demo bookings used to reference `riverside`, a Phnom Penh placeholder
+ * hotel. HotelSeeder's whole dummy catalog (Phnom Penh + Kampot) was
+ * removed the same day so testing isn't mixing fake listings with the
+ * one real property (Greyon Hotel & Serviced Apartment — see
+ * GreyonShvSeeder) -- these bookings move to real room types instead of
+ * disappearing, so there's still something to test admin/booking views
+ * against. `taxes_fees` is 0 on every seed below, not a mistake: the
+ * real property's rate plans carry 0% tax/service fee (no figure was in
+ * the client's doc — see GreyonShvSeeder's docblock), so a seeded
+ * booking against real rates correctly shows no tax/fee line yet.
+ *
+ * No `otres-bay` booking here either (removed 2026-09-29, before this):
+ * see git history for that change.
  */
 class BookingSeeder extends Seeder
 {
@@ -25,27 +31,27 @@ class BookingSeeder extends Seeder
     {
         $guest = User::where('email', 'guest@greyon.test')->first();
 
-        $riversideDeluxe = RoomType::where('slug', 'deluxe-king')
-            ->whereHas('hotel', fn ($q) => $q->where('slug', 'riverside'))
+        $roomA = RoomType::where('slug', '1br-middle')
+            ->whereHas('hotel', fn ($q) => $q->where('slug', 'greyon-shv'))
             ->firstOrFail();
-        $riversideTwin = RoomType::where('slug', 'standard-twin')
-            ->whereHas('hotel', fn ($q) => $q->where('slug', 'riverside'))
+        $roomB = RoomType::where('slug', '1br-balcony')
+            ->whereHas('hotel', fn ($q) => $q->where('slug', 'greyon-shv'))
             ->firstOrFail();
 
-        $flex = RatePlan::where('room_type_id', $riversideDeluxe->id)
-            ->where('name', 'Flexible Rate')
+        $rateA = RatePlan::where('room_type_id', $roomA->id)
+            ->where('name', 'Nightly Rate')
             ->firstOrFail();
-        $twinRate = RatePlan::where('room_type_id', $riversideTwin->id)
-            ->where('name', 'Flexible Rate')
+        $rateB = RatePlan::where('room_type_id', $roomB->id)
+            ->where('name', 'Nightly Rate')
             ->firstOrFail();
 
         $seeds = [
             [
                 'reference' => 'GRY-SEED01',
                 'user_id' => $guest?->id,
-                'hotel_id' => $riversideDeluxe->hotel_id,
-                'room_type_id' => $riversideDeluxe->id,
-                'rate_plan_id' => $flex->id,
+                'hotel_id' => $roomA->hotel_id,
+                'room_type_id' => $roomA->id,
+                'rate_plan_id' => $rateA->id,
                 'check_in' => now()->addDays(10)->toDateString(),
                 'check_out' => now()->addDays(12)->toDateString(),
                 'rooms' => 1,
@@ -54,18 +60,18 @@ class BookingSeeder extends Seeder
                 'guest_full_name' => $guest?->name ?? 'Test Guest',
                 'guest_email' => $guest?->email ?? 'guest@greyon.test',
                 'guest_phone' => '+855 23 000 111',
-                'subtotal' => 130.00,
-                'taxes_fees' => 19.50,
-                'total' => 149.50,
+                'subtotal' => 80.00,
+                'taxes_fees' => 0.00,
+                'total' => 80.00,
                 'status' => 'confirmed',
                 'source' => 'website',
             ],
             [
                 'reference' => 'GRY-SEED03',
                 'user_id' => null,
-                'hotel_id' => $riversideTwin->hotel_id,
-                'room_type_id' => $riversideTwin->id,
-                'rate_plan_id' => $twinRate->id,
+                'hotel_id' => $roomB->hotel_id,
+                'room_type_id' => $roomB->id,
+                'rate_plan_id' => $rateB->id,
                 'check_in' => now()->addDays(3)->toDateString(),
                 'check_out' => now()->addDays(5)->toDateString(),
                 'rooms' => 1,
@@ -74,9 +80,9 @@ class BookingSeeder extends Seeder
                 'guest_full_name' => 'Walk-in Guest',
                 'guest_email' => 'walkin@example.com',
                 'guest_phone' => '+855 12 999 888',
-                'subtotal' => 80.00,
-                'taxes_fees' => 12.00,
-                'total' => 92.00,
+                'subtotal' => 90.00,
+                'taxes_fees' => 0.00,
+                'total' => 90.00,
                 'status' => 'pending',
                 'source' => 'website',
                 'notes' => 'Awaiting hotel confirmation.',
@@ -84,9 +90,9 @@ class BookingSeeder extends Seeder
             [
                 'reference' => 'GRY-SEED04',
                 'user_id' => null,
-                'hotel_id' => $riversideDeluxe->hotel_id,
-                'room_type_id' => $riversideDeluxe->id,
-                'rate_plan_id' => $flex->id,
+                'hotel_id' => $roomA->hotel_id,
+                'room_type_id' => $roomA->id,
+                'rate_plan_id' => $rateA->id,
                 'check_in' => now()->addDays(1)->toDateString(),
                 'check_out' => now()->addDays(2)->toDateString(),
                 'rooms' => 2,
@@ -95,9 +101,9 @@ class BookingSeeder extends Seeder
                 'guest_full_name' => 'Admin Created',
                 'guest_email' => 'ops@example.com',
                 'guest_phone' => '+855 23 555 000',
-                'subtotal' => 130.00,
-                'taxes_fees' => 19.50,
-                'total' => 149.50,
+                'subtotal' => 80.00,
+                'taxes_fees' => 0.00,
+                'total' => 80.00,
                 'status' => 'pending',
                 'source' => 'admin',
             ],
@@ -114,9 +120,9 @@ class BookingSeeder extends Seeder
         if (! Booking::where('reference', 'like', 'GRY-DEMO%')->exists()) {
             Booking::create([
                 'reference' => 'GRY-DEMO'.Str::upper(Str::random(4)),
-                'hotel_id' => $riversideDeluxe->hotel_id,
-                'room_type_id' => $riversideDeluxe->id,
-                'rate_plan_id' => $flex->id,
+                'hotel_id' => $roomA->hotel_id,
+                'room_type_id' => $roomA->id,
+                'rate_plan_id' => $rateA->id,
                 'check_in' => now()->addDays(7)->toDateString(),
                 'check_out' => now()->addDays(9)->toDateString(),
                 'rooms' => 1,
@@ -125,9 +131,9 @@ class BookingSeeder extends Seeder
                 'guest_full_name' => 'Demo Traveller',
                 'guest_email' => 'demo.traveller@example.com',
                 'guest_phone' => '+855 11 222 333',
-                'subtotal' => 130.00,
-                'taxes_fees' => 19.50,
-                'total' => 149.50,
+                'subtotal' => 80.00,
+                'taxes_fees' => 0.00,
+                'total' => 80.00,
                 'status' => 'pending',
                 'source' => 'website',
             ]);

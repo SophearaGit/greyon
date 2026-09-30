@@ -6,12 +6,16 @@ use App\Models\Location;
 use App\Models\News;
 use Illuminate\Database\Seeder;
 
+/**
+ * No `angkor-golden-hour` article here (removed 2026-09-30, alongside
+ * the `siem-reap` location -- see LocationSeeder's docblock): it was
+ * Siem Reap-specific content with nowhere sensible left to attach.
+ */
 class NewsSeeder extends Seeder
 {
     public function run(): void
     {
         $pp = Location::where('slug', 'phnom-penh')->value('id');
-        $sr = Location::where('slug', 'siem-reap')->value('id');
         $sv = Location::where('slug', 'sihanoukville')->value('id');
 
         $articles = [
@@ -26,18 +30,6 @@ class NewsSeeder extends Seeder
                 'status' => 'published',
                 'seo_title' => 'Quiet mornings on the Tonle Sap | Greyon',
                 'seo_description' => 'Riverside stays and calm mornings with Greyon in Phnom Penh.',
-            ],
-            [
-                'title' => 'Angkor at golden hour',
-                'slug' => 'angkor-golden-hour',
-                'location_id' => $sr,
-                'cover_image' => 'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=1400&q=80',
-                'excerpt' => 'How we time temple days so guests return cool and unhurried.',
-                'body' => "Siem Reap stays work best with an early temple start and a long afternoon by the pool.\n\nOur concierge can arrange licensed guides and late check-out after sunrise visits.",
-                'published_at' => now()->subDays(5)->toDateString(),
-                'status' => 'published',
-                'seo_title' => 'Angkor at golden hour | Greyon',
-                'seo_description' => 'Temple timing tips for Greyon guests in Siem Reap.',
             ],
             [
                 'title' => 'Draft: coast portfolio notes',

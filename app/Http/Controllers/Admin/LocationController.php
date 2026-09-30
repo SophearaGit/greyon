@@ -53,7 +53,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  * the 5 gate specific fields on update(), on top of the parent
  * `locations` feature gate (still required via route middleware just
  * to reach this controller at all):
- *   - name/slug/description/heroImage/gallery/highlights →
+ *   - name/slug/description/phone/email/heroImage/gallery/highlights →
  *     `locations_list` ("view and edit destination content")
  *   - status → `locations_publish` ("publish / archive")
  *   - seoTitle/seoDescription → `locations_seo` ("SEO fields")
@@ -199,7 +199,7 @@ class LocationController extends Controller
      */
     private function authorizeFields(Admin $admin, array $data): void
     {
-        $contentFields = ['name', 'slug', 'description', 'hero_image', 'gallery', 'highlights'];
+        $contentFields = ['name', 'slug', 'description', 'phone', 'email', 'hero_image', 'gallery', 'highlights'];
 
         if (array_intersect($contentFields, array_keys($data)) !== [] && ! $this->access->hasPermission($admin, 'locations_list')) {
             throw new HttpException(403, 'Missing permission: locations_list');
@@ -231,6 +231,8 @@ class LocationController extends Controller
                 Rule::unique('locations', 'slug')->ignore($location?->id),
             ],
             'description' => ['nullable', 'string'],
+            'phone' => ['nullable', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'],
             'heroImage' => ['nullable', 'string', 'max:2048'],
             'gallery' => ['array'],
             'gallery.*' => ['string'],

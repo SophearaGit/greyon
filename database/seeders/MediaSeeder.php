@@ -18,9 +18,13 @@ class MediaSeeder extends Seeder
     public function run(): void
     {
         // No otres-bay/harbor-light/coral-inn media rows here (removed
-        // 2026-09-29, alongside those Sihanoukville placeholder demo
-        // hotels -- see HotelSeeder's docblock): each fell back to a
-        // stale caption for a hotel that no longer exists.
+        // 2026-09-29), and none for riverside/capitol-suites/mekong-house/
+        // pepper-house/bokor-view/salt-field-inn either (removed
+        // 2026-09-30, alongside HotelSeeder's whole dummy catalog -- see
+        // its docblock): each fell back to a stale caption for a hotel
+        // that no longer exists. The 2 generic Phnom Penh shots and 1
+        // Sihanoukville shot below are location-level (no hotel tag), so
+        // they're unaffected by either removal.
         $adminId = Admin::where('email', 'admin@greyon.com.kh')->value('id');
 
         $bySlug = fn (string $slug) => Location::where('slug', $slug)->value('id');
@@ -31,36 +35,6 @@ class MediaSeeder extends Seeder
         $kp = $bySlug('kampot');
 
         $items = [
-            [
-                'src' => 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1400&q=80',
-                'alt' => 'Riverside Hotel · Phnom Penh riverfront pool',
-                'hotel' => 'riverside',
-            ],
-            [
-                'src' => 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1400&q=80',
-                'alt' => 'Capitol Suites · modern lobby Phnom Penh',
-                'hotel' => 'capitol-suites',
-            ],
-            [
-                'src' => 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1400&q=80',
-                'alt' => 'Mekong House · boutique courtyard',
-                'hotel' => 'mekong-house',
-            ],
-            [
-                'src' => 'https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1400&q=80',
-                'alt' => 'Pepper House · Kampot river deck',
-                'hotel' => 'pepper-house',
-            ],
-            [
-                'src' => 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=1400&q=80',
-                'alt' => 'Bokor View Lodge · mountain outlook',
-                'hotel' => 'bokor-view',
-            ],
-            [
-                'src' => 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1400&q=80',
-                'alt' => 'Salt Field Inn · countryside morning',
-                'hotel' => 'salt-field-inn',
-            ],
             [
                 'src' => 'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=1400&q=80',
                 'alt' => 'Greyon suite · king bed and soft light',

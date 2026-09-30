@@ -148,6 +148,8 @@ class HotelController extends Controller
         $data = $request->validate([
             'locationId' => [$hotel ? 'sometimes' : 'required', 'integer', Rule::exists(Location::class, 'id')],
             'name' => [$hotel ? 'sometimes' : 'required', 'string', 'max:255'],
+            'propertyType' => ['nullable', 'string', 'max:255'],
+            'starRating' => ['nullable', 'integer', 'between:1,5'],
             'slug' => [
                 $hotel ? 'sometimes' : 'required',
                 'string',
@@ -157,6 +159,7 @@ class HotelController extends Controller
             'shortDescription' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'address' => ['nullable', 'string'],
+            'area' => ['nullable', 'string', 'max:255'],
             'coordinates' => ['sometimes', 'array'],
             'coordinates.lat' => ['nullable', 'numeric', 'between:-90,90'],
             'coordinates.lng' => ['nullable', 'numeric', 'between:-180,180'],
@@ -170,6 +173,9 @@ class HotelController extends Controller
             'amenities.*' => ['string'],
             'policies' => ['array'],
             'policies.*' => ['string'],
+            'nearbyLandmarks' => ['array'],
+            'nearbyLandmarks.*.place' => ['required_with:nearbyLandmarks', 'string', 'max:255'],
+            'nearbyLandmarks.*.distance' => ['required_with:nearbyLandmarks', 'string', 'max:100'],
             'checkInTime' => ['nullable', 'string', 'max:20'],
             'checkOutTime' => ['nullable', 'string', 'max:20'],
             'featured' => ['sometimes', 'boolean'],
@@ -195,9 +201,12 @@ class HotelController extends Controller
     {
         $map = [
             'locationId' => 'location_id',
+            'propertyType' => 'property_type',
+            'starRating' => 'star_rating',
             'shortDescription' => 'short_description',
             'heroImage' => 'hero_image',
             'mapEmbedUrl' => 'map_embed_url',
+            'nearbyLandmarks' => 'nearby_landmarks',
             'checkInTime' => 'check_in_time',
             'checkOutTime' => 'check_out_time',
             'seoTitle' => 'seo_title',

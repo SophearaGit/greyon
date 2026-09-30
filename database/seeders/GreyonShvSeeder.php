@@ -17,10 +17,11 @@ use Illuminate\Database\Seeder;
  * actual property, not a template to be duplicated per hotel.
  *
  * Fields the source doc didn't provide, and what was done instead:
- *   - No lat/lng (only a Google Maps share link, not raw coordinates —
- *     attempted to resolve it but the fetch was rate-limited). Left
- *     null; fill in via the admin panel once available (geocode the
- *     address or drop a pin from the Maps link below).
+ *   - lat/lng (2026-09-30): resolved from the client's Google Maps
+ *     share link (below, now also stored in `map_embed_url`) —
+ *     10.6253316, 103.5162819, confirmed against "Greyon Serviced
+ *     Apartment Sihanouk Ville" on the map. The share link itself
+ *     redirects to a full Maps URL carrying these same coordinates.
  *   - No photos at all. Uses the same deterministic placeholder-photo
  *     pattern as HotelSeeder (picsum.photos/unsplash) — swap for real
  *     photography via `PATCH /admin/hotels/{id}` whenever supplied.
@@ -31,10 +32,15 @@ use Illuminate\Database\Seeder;
  *     10%/5%. Left at 0/0 rather than inventing a charge on real prices
  *     — add one via `PATCH /admin/rate-plans/{id}` if the client
  *     actually charges tax/service on top of the nightly rate.
- *   - "Star rating" (3-star) and "Property Type" (Hotel & Serviced
- *     Apartment) have no dedicated columns — folded into `description`.
- *   - Nearby landmarks (doc section 4) have no home in this schema at
- *     all — not seeded anywhere; flagged to the user separately.
+ *   - "Star rating" (3) and "Property Type" (Hotel & Serviced
+ *     Apartment) now have their own columns (2026-09-30:
+ *     `property_type`/`star_rating`, added below) — still also
+ *     mentioned in prose inside `description` for now, harmless
+ *     duplication, not worth rewriting that paragraph over.
+ *   - Nearby landmarks (doc section 4) now have a home: a new
+ *     `nearby_landmarks` JSON column on `hotels` (2026-09-30),
+ *     `{ place, distance }` pairs, seeded below in the doc's own
+ *     order.
  *   - Monthly/long-stay rates: doc says to just show "Contact us for
  *     more information" — that's frontend copy (this repo has no
  *     frontend), so it's left as a `policies` note here instead.
@@ -50,11 +56,15 @@ class GreyonShvSeeder extends Seeder
             [
                 'location_id' => $location->id,
                 'name' => 'Greyon Hotel & Serviced Apartment',
+                'property_type' => 'Hotel & Serviced Apartment',
+                'star_rating' => 3,
                 'short_description' => 'Conveniently located in the center of Sihanoukville on Ekareach Street. Free parking, free Wi-Fi, 24-hour security, daily housekeeping options, fitness facilities, and rooftop outdoor space. Close to beaches, markets, and public transport.',
                 'description' => 'Greyon Hotel & Serviced Apartment is a 3-star hotel and serviced apartment property in the heart of Sihanoukville on Ekareach Street. Guests enjoy free parking, free Wi-Fi, 24-hour security, daily housekeeping options, fitness facilities, and rooftop outdoor space — close to beaches, markets, and public transport.',
                 'address' => '#300, Ekareach Street, Phum 1, Sangkat No. 3, Preah Sihanouk City, Preah Sihanouk Province, Cambodia',
-                'lat' => null,
-                'lng' => null,
+                'area' => 'Central / Ekareach Street',
+                'lat' => 10.6253316,
+                'lng' => 103.5162819,
+                'map_embed_url' => 'https://maps.app.goo.gl/NEc4GV6VBNboUsVH7',
                 'phone' => '+855 76 4938 886',
                 'email' => 'info@greyon.com.kh',
                 'hero_image' => 'https://picsum.photos/seed/greyon-shv/1600/900',
@@ -71,6 +81,17 @@ class GreyonShvSeeder extends Seeder
                     'Apartment services: linen changed once a week, cleaning twice a week.',
                     'Apartment utilities: electricity $0.30/kWh, water $0.70/m³.',
                     'Monthly and long-stay rates available on request — contact us for pricing.',
+                ],
+                'nearby_landmarks' => [
+                    ['place' => 'China Wanda Supermarket', 'distance' => '50 m'],
+                    ['place' => 'Doctor Chev Sam An', 'distance' => '50 m'],
+                    ['place' => 'Sihanoukville Bus Terminal', 'distance' => '~160–930 m'],
+                    ['place' => 'Phsar Leu Market', 'distance' => '1.5 km'],
+                    ['place' => 'Golden Lion', 'distance' => '1.5–1.8 km'],
+                    ['place' => 'Serendipity Beach', 'distance' => '2.2 km'],
+                    ['place' => 'Independence Beach', 'distance' => '2.2 km'],
+                    ['place' => 'Ochheuteal Beach', 'distance' => '3.5 km'],
+                    ['place' => 'Sihanoukville International Airport (KOS)', 'distance' => '14.5–14.8 km'],
                 ],
                 'featured' => true,
                 'status' => 'published',

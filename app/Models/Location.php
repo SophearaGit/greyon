@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * A destination (Siem Reap, Phnom Penh, ...). Scope is enforced via
+ * A destination (Phnom Penh, Kampot, ...). Scope is enforced via
  * App\Services\AccessService::canAccessLocation() against a
  * location-scoped package's `location_ids` (App\Models\AdminPackage,
  * the `admin_package` pivot) — this model carries no manager/owner
@@ -27,6 +27,8 @@ class Location extends Model
         'name',
         'slug',
         'description',
+        'phone',
+        'email',
         'hero_image',
         'gallery',
         'highlights',

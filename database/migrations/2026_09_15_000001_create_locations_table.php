@@ -9,8 +9,8 @@ return new class extends Migration
     /**
      * Run the migrations.
      *
-     * Spec section 4's `locations` (a "destination" — Siem Reap, Phnom
-     * Penh, ...). Scope is enforced via App\Services\AccessService's
+     * Spec section 4's `locations` (a "destination" — Phnom Penh,
+     * Kampot, ...). Scope is enforced via App\Services\AccessService's
      * canAccessLocation() against a location-scoped package's
      * `location_ids` (stored per package assignment on the
      * `admin_package` pivot) — there's no manager/owner column on this

@@ -6,14 +6,24 @@ use App\Models\Location;
 use Illuminate\Database\Seeder;
 
 /**
- * Ids intentionally match AdminSeeder's placeholder `locationIds`
- * (1 = Phnom Penh, 2 = Siem Reap, 3 = Kampot, 4 = Sihanoukville) so
- * those placeholders become real FK references once this seeder runs
- * (AdminSeeder actually resolves by slug now, not by hard-coded id, but
- * the order still matters for anything that assumes it). Must run
- * before AdminSeeder. Kampot and Sihanoukville were added in Round 12
- * (2026-09-22) so the `Manager · Kampot` / `Manager · Sihanoukville`
- * packages have a real location to be scoped to — see PackageSeeder.
+ * Seeds the 3 live destinations: Phnom Penh, Kampot, Sihanoukville.
+ * AdminSeeder resolves each manager's location by slug (not id), so
+ * this must still run before AdminSeeder. Kampot and Sihanoukville were
+ * added in Round 12 (2026-09-22) so the `Manager · Kampot` /
+ * `Manager · Sihanoukville` packages have a real location to be scoped
+ * to — see PackageSeeder.
+ *
+ * No `siem-reap` entry (removed 2026-09-30): never had any hotels,
+ * room types, or rate plans -- placeholder destination only. The one
+ * news article that referenced it (`angkor-golden-hour`) was removed
+ * from NewsSeeder along with it.
+ *
+ * `phone`/`email` (2026-09-30): the client's "Destination Information"
+ * doc gives Sihanoukville a real destination-level phone/email
+ * (separate from the hotel's own phone/email, which GreyonShvSeeder
+ * already sets) -- added here to match. Phnom Penh and Kampot are left
+ * null: no real destination contact info exists for either yet, same
+ * "don't seed placeholder data" reasoning HotelSeeder's docblock uses.
  *
  * `hero_image`/`gallery` (2026-09-22, Round 12.2): the public-facing
  * site (greyon.site — a separate frontend, not in this repo) showed a
@@ -53,23 +63,6 @@ class LocationSeeder extends Seeder
         );
 
         Location::updateOrCreate(
-            ['slug' => 'siem-reap'],
-            [
-                'name' => 'Siem Reap',
-                'description' => 'Gateway to Angkor Wat — resorts, boutique stays, and temple tours.',
-                'hero_image' => 'https://picsum.photos/seed/greyon-siem-reap/1600/900',
-                'gallery' => [
-                    'https://picsum.photos/seed/greyon-siem-reap-2/1600/900',
-                    'https://picsum.photos/seed/greyon-siem-reap-3/1600/900',
-                ],
-                'highlights' => ['Angkor Archaeological Park', 'Pub Street', 'Tonle Sap Lake'],
-                'status' => 'published',
-                'seo_title' => 'Hotels in Siem Reap | Greyon',
-                'seo_description' => 'Book hotels in Siem Reap, near Angkor Wat.',
-            ]
-        );
-
-        Location::updateOrCreate(
             ['slug' => 'kampot'],
             [
                 'name' => 'Kampot',
@@ -91,6 +84,8 @@ class LocationSeeder extends Seeder
             [
                 'name' => 'Sihanoukville',
                 'description' => 'Beach town gateway to Cambodia\'s southern islands.',
+                'phone' => '+855 76 4938 886',
+                'email' => 'info@greyon.com.kh',
                 'hero_image' => 'https://picsum.photos/seed/greyon-sihanoukville/1600/900',
                 'gallery' => [
                     'https://picsum.photos/seed/greyon-sihanoukville-2/1600/900',

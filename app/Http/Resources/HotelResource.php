@@ -25,7 +25,7 @@ class HotelResource extends JsonResource
             ]),
             'name' => $this->name,
             'propertyType' => $this->property_type,
-            'starRating' => $this->star_rating,
+            'starRating' => $this->star_rating !== null ? (int) $this->star_rating : null,
             'slug' => $this->slug,
             'shortDescription' => $this->short_description,
             'description' => $this->description,
@@ -42,7 +42,14 @@ class HotelResource extends JsonResource
             'gallery' => $this->gallery ?? [],
             'amenities' => $this->amenities ?? [],
             'policies' => $this->policies ?? [],
-            'nearbyLandmarks' => $this->nearby_landmarks ?? [],
+            'nearbyLandmarks' => collect($this->nearby_landmarks ?? [])
+                ->map(fn ($row) => [
+                    'place' => is_array($row) ? ($row['place'] ?? '') : '',
+                    'distance' => is_array($row) ? ($row['distance'] ?? '') : '',
+                ])
+                ->filter(fn ($row) => filled($row['place']))
+                ->values()
+                ->all(),
             'checkInTime' => $this->check_in_time,
             'checkOutTime' => $this->check_out_time,
             'featured' => (bool) $this->featured,

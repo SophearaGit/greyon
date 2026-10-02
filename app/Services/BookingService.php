@@ -238,6 +238,13 @@ class BookingService
             'total' => $booking->total,
         ]);
 
+        if (! empty($input['user_id'])) {
+            $user = User::query()->find($input['user_id']);
+            if ($user) {
+                $this->syncProfilePhoneFromGuest($user, (string) ($input['guest_phone'] ?? ''));
+            }
+        }
+
         $this->notifications->notifyCreated($booking->fresh(['hotel.location']) ?? $booking);
 
         return $booking;
@@ -330,17 +337,67 @@ class BookingService
     /**
      * Attach orphan guest bookings that used this account's email.
      * Same Gmail as a prior guest checkout → stay shows under My account.
+     * Also backfills users.phone from the latest booking guest phone when empty.
      */
     public function claimForUser(User $user): int
     {
         $email = strtolower(trim((string) $user->email));
-        if ($email === '') {
-            return 0;
+        $claimed = 0;
+
+        if ($email !== '') {
+            $claimed = Booking::query()
+                ->whereNull('user_id')
+                ->whereRaw('LOWER(guest_email) = ?', [$email])
+                ->update(['user_id' => $user->id]);
         }
 
-        return Booking::query()
-            ->whereNull('user_id')
-            ->whereRaw('LOWER(guest_email) = ?', [$email])
-            ->update(['user_id' => $user->id]);
+        $this->backfillPhoneFromBookings($user);
+
+        return $claimed;
+    }
+
+    /**
+     * Persist the guest contact phone onto the linked account (latest wins).
+     */
+    public function syncProfilePhoneFromGuest(User $user, string $guestPhone): void
+    {
+        $phone = trim($guestPhone);
+        if ($phone === '') {
+            return;
+        }
+
+        if (trim((string) $user->phone) === $phone) {
+            return;
+        }
+
+        $user->forceFill(['phone' => $phone])->save();
+    }
+
+    /**
+     * If the account has no phone yet, copy the most recent booking guest_phone.
+     */
+    public function backfillPhoneFromBookings(User $user): void
+    {
+        if (trim((string) $user->phone) !== '') {
+            return;
+        }
+
+        $email = strtolower(trim((string) $user->email));
+
+        $phone = Booking::query()
+            ->where(function ($q) use ($user, $email) {
+                $q->where('user_id', $user->id);
+                if ($email !== '') {
+                    $q->orWhereRaw('LOWER(guest_email) = ?', [$email]);
+                }
+            })
+            ->whereNotNull('guest_phone')
+            ->where('guest_phone', '!=', '')
+            ->orderByDesc('created_at')
+            ->value('guest_phone');
+
+        if (is_string($phone) && trim($phone) !== '') {
+            $user->forceFill(['phone' => trim($phone)])->save();
+        }
     }
 }

@@ -30,6 +30,7 @@ class AuthenticatedSessionController extends Controller
         $user = Auth::guard('web')->user();
         if ($user) {
             $this->bookings->claimForUser($user);
+            $user->refresh();
         }
 
         return response()->json(['user' => $user]);
@@ -47,6 +48,13 @@ class AuthenticatedSessionController extends Controller
 
     public function show(Request $request): JsonResponse
     {
-        return response()->json(['user' => $request->user()]);
+        $user = $request->user();
+        if ($user) {
+            // Claim orphan bookings + backfill profile phone from prior stays.
+            $this->bookings->claimForUser($user);
+            $user->refresh();
+        }
+
+        return response()->json(['user' => $user]);
     }
 }

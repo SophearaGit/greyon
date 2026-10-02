@@ -23,6 +23,8 @@ class LocationResource extends JsonResource
             'heroImage' => $this->hero_image,
             'gallery' => $this->gallery ?? [],
             'highlights' => $this->highlights ?? [],
+            'phone' => $this->phone,
+            'email' => $this->email,
             'status' => $this->status,
             'seoTitle' => $this->seo_title,
             'seoDescription' => $this->seo_description,

@@ -30,6 +30,8 @@ class Location extends Model
         'hero_image',
         'gallery',
         'highlights',
+        'phone',
+        'email',
         'status',
         'seo_title',
         'seo_description',

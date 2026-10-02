@@ -31,7 +31,7 @@ class CatalogController extends Controller
             $locations = Location::query()
                 ->select([
                     'id', 'name', 'slug', 'description', 'hero_image',
-                    'highlights', 'status', 'seo_title', 'seo_description',
+                    'highlights', 'phone', 'email', 'status', 'seo_title', 'seo_description',
                     'created_by_admin_id',
                 ])
                 ->selectRaw('JSON_ARRAY() as gallery')
@@ -46,9 +46,10 @@ class CatalogController extends Controller
             $hotels = Hotel::query()
                 ->select([
                     'id', 'location_id', 'name', 'slug', 'short_description',
-                    'description', 'address', 'lat', 'lng', 'map_embed_url', 'phone', 'email',
-                    'hero_image', 'amenities', 'policies', 'check_in_time',
-                    'check_out_time', 'featured', 'status', 'seo_title',
+                    'description', 'address', 'area', 'property_type', 'star_rating',
+                    'lat', 'lng', 'map_embed_url', 'phone', 'email',
+                    'hero_image', 'amenities', 'policies', 'nearby_landmarks',
+                    'check_in_time', 'check_out_time', 'featured', 'status', 'seo_title',
                     'seo_description',
                 ])
                 ->selectRaw('JSON_ARRAY() as gallery')

@@ -23,6 +23,9 @@ class Hotel extends Model
         'short_description',
         'description',
         'address',
+        'area',
+        'property_type',
+        'star_rating',
         'lat',
         'lng',
         'map_embed_url',
@@ -32,6 +35,7 @@ class Hotel extends Model
         'gallery',
         'amenities',
         'policies',
+        'nearby_landmarks',
         'check_in_time',
         'check_out_time',
         'featured',
@@ -44,11 +48,13 @@ class Hotel extends Model
     {
         return [
             'location_id' => 'integer',
+            'star_rating' => 'integer',
             'lat' => 'decimal:7',
             'lng' => 'decimal:7',
             'gallery' => 'array',
             'amenities' => 'array',
             'policies' => 'array',
+            'nearby_landmarks' => 'array',
             'featured' => 'boolean',
         ];
     }

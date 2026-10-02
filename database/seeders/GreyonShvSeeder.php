@@ -22,9 +22,10 @@ use Illuminate\Database\Seeder;
  *     10.6253316, 103.5162819, confirmed against "Greyon Serviced
  *     Apartment Sihanouk Ville" on the map. The share link itself
  *     redirects to a full Maps URL carrying these same coordinates.
- *   - No photos at all. Uses the same deterministic placeholder-photo
- *     pattern as HotelSeeder (picsum.photos/unsplash) — swap for real
- *     photography via `PATCH /admin/hotels/{id}` whenever supplied.
+ *   - No real photos yet. Hotel + each room type use the same
+ *     deterministic placeholder-photo pattern as HotelSeeder
+ *     (picsum.photos/seed/<slug>) — swap for real photography via
+ *     `PATCH /admin/hotels/{id}` / room-type admin whenever supplied.
  *   - No stated per-room occupancy (max adults/children). Inferred from
  *     bedroom/bunk counts (documented inline below) — confirm with the
  *     client and adjust via the admin panel if these don't match intent.
@@ -152,12 +153,17 @@ class GreyonShvSeeder extends Seeder
             $amenities[] = 'Private balcony';
         }
 
+        $seed = 'greyon-shv-'.$room['slug'];
+
         $roomType = RoomType::updateOrCreate(
             ['hotel_id' => $hotel->id, 'slug' => $room['slug']],
             [
                 'name' => $room['name'],
                 'description' => $room['name'],
-                'images' => null,
+                'images' => [
+                    "https://picsum.photos/seed/{$seed}/1200/800",
+                    "https://picsum.photos/seed/{$seed}-2/1200/800",
+                ],
                 'bed_type' => $room['bed_type'],
                 'room_size' => $roomSize,
                 'max_adults' => $room['adults'],

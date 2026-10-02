@@ -20,8 +20,9 @@ use Throwable;
 /**
  * One-shot published catalog for the Quasar SPA hydrate.
  *
- * Image JSON columns are selected as empty arrays / null so a huge
- * admin `data:` base64 blob cannot OOM or break this endpoint.
+ * Image columns are returned so the public site shows the same photos
+ * as admin. Inline `data:` uploads are kept only up to the admin drop
+ * limit; anything larger is dropped so one blob cannot exhaust memory.
  */
 class CatalogController extends Controller
 {
@@ -30,11 +31,12 @@ class CatalogController extends Controller
         try {
             $locations = Location::query()
                 ->select([
-                    'id', 'name', 'slug', 'description', 'hero_image',
+                    'id', 'name', 'slug', 'description',
                     'highlights', 'phone', 'email', 'status', 'seo_title', 'seo_description',
                     'created_by_admin_id',
                 ])
-                ->selectRaw('JSON_ARRAY() as gallery')
+                ->selectRaw($this->boundedImageSql('hero_image'))
+                ->selectRaw($this->boundedJsonImagesSql('gallery'))
                 ->withCount([
                     'hotels' => fn ($query) => $query->where('status', 'published'),
                 ])
@@ -48,11 +50,12 @@ class CatalogController extends Controller
                     'id', 'location_id', 'name', 'slug', 'short_description',
                     'description', 'address', 'area', 'property_type', 'star_rating',
                     'lat', 'lng', 'map_embed_url', 'phone', 'email',
-                    'hero_image', 'amenities', 'policies', 'nearby_landmarks',
+                    'amenities', 'policies', 'nearby_landmarks',
                     'check_in_time', 'check_out_time', 'featured', 'status', 'seo_title',
                     'seo_description',
                 ])
-                ->selectRaw('JSON_ARRAY() as gallery')
+                ->selectRaw($this->boundedImageSql('hero_image'))
+                ->selectRaw($this->boundedJsonImagesSql('gallery'))
                 ->with('location:id,name,slug')
                 ->where('status', 'published')
                 ->whereHas('location', fn ($query) => $query->where('status', 'published'))
@@ -68,11 +71,12 @@ class CatalogController extends Controller
                     'bed_type', 'room_size', 'max_adults', 'max_children',
                     'max_guests', 'amenities', 'base_inventory', 'status',
                 ])
-                ->selectRaw('JSON_ARRAY() as images')
+                ->selectRaw($this->boundedJsonImagesSql('images'))
                 ->where('status', 'published')
                 ->whereIn('hotel_id', $hotelIds)
                 ->orderBy('name')
-                ->get();
+                ->get()
+                ->each(fn (RoomType $roomType) => $this->scrubPublicMedia($roomType, [], ['images']));
 
             $roomTypeIds = $roomTypes->pluck('id');
 
@@ -135,9 +139,46 @@ class CatalogController extends Controller
         }
     }
 
+    /**
+     * Keep a single image string unless it is larger than an admin file drop.
+     */
+    private function boundedImageSql(string $column): string
+    {
+        $column = $this->imageColumn($column);
+
+        return "CASE WHEN {$column} IS NULL OR LENGTH({$column}) > 3500000 THEN NULL ELSE {$column} END as {$column}";
+    }
+
+    /**
+     * Keep a JSON image list unless the whole column is too large to hydrate.
+     */
+    private function boundedJsonImagesSql(string $column): string
+    {
+        $column = $this->imageColumn($column);
+
+        return "CASE WHEN {$column} IS NULL OR LENGTH({$column}) > 12000000 THEN JSON_ARRAY() ELSE {$column} END as {$column}";
+    }
+
+    private function imageColumn(string $column): string
+    {
+        if (! preg_match('/^[a-z_]+$/', $column)) {
+            throw new \InvalidArgumentException("Unexpected image column [{$column}].");
+        }
+
+        return $column;
+    }
+
     private function isPublicImageUrl(string $src): bool
     {
-        if ($src === '' || str_starts_with($src, 'data:')) {
+        if ($src === '') {
+            return false;
+        }
+
+        if (str_starts_with($src, 'data:image/')) {
+            return strlen($src) <= 3_500_000;
+        }
+
+        if (str_starts_with($src, 'data:')) {
             return false;
         }
 

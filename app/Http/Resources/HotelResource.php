@@ -18,7 +18,7 @@ class HotelResource extends JsonResource
         return [
             'id' => $this->id,
             'locationId' => $this->location_id,
-            'location' => $this->whenLoaded('location', fn () => [
+            'location' => $this->whenLoaded('location', fn() => [
                 'id' => $this->location->id,
                 'name' => $this->location->name,
                 'slug' => $this->location->slug,
@@ -42,18 +42,16 @@ class HotelResource extends JsonResource
             'gallery' => $this->gallery ?? [],
             'amenities' => $this->amenities ?? [],
             'policies' => $this->policies ?? [],
-<<<<<<< Updated upstream
-                        'nearbyLandmarks' => collect($this->nearby_landmarks ?? [])
-                ->map(fn ($row) => [
+            'nearbyLandmarks' => collect($this->nearby_landmarks ?? [])
+                ->map(fn($row) => [
                     'place' => is_array($row) ? ($row['place'] ?? '') : '',
                     'distance' => is_array($row) ? ($row['distance'] ?? '') : '',
                 ])
-                ->filter(fn ($row) => filled($row['place']))
+                ->filter(fn($row) => filled($row['place']))
                 ->values()
                 ->all(),
             'services' => ServiceResource::collection($this->whenLoaded('services')),
             'products' => ProductResource::collection($this->whenLoaded('products')),
->>>>>>> Stashed changes
             'checkInTime' => $this->check_in_time,
             'checkOutTime' => $this->check_out_time,
             'featured' => (bool) $this->featured,

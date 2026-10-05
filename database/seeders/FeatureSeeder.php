@@ -26,6 +26,15 @@ class FeatureSeeder extends Seeder
             ['settings', 'SEO / Settings', 'Site defaults and SEO'],
             ['users', 'People', 'Create managers & hotel desks; assign seats (roles) with location/hotel scope'],
             ['features', 'Seat types', 'Developer: build seat types (packages) from roles → features → permissions'],
+            // Appended, not inserted — keeps every existing feature's
+            // sort_order unchanged. Client requirements doc (2026-10-04),
+            // item 6: a selectable Services catalog for the hotel form,
+            // replacing free-text input.
+            ['services', 'Services', 'Selectable service catalog for hotels (replaces free-text service input)'],
+            // Appended 2026-10-05. Client requirements doc item 5: a
+            // selectable Products catalog for the hotel form (same
+            // many-to-many pattern as Services).
+            ['products', 'Products', 'Selectable product catalog for hotels'],
         ];
 
         foreach ($adminParents as $i => [$key, $label, $description]) {

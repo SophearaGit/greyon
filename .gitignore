@@ -32,3 +32,6 @@ Thumbs.db
 /storage/logs/*
 !/storage/logs/.gitignore
 
+
+# Internal/client-facing docs — not shared with the team repo.
+/greyon-documentation

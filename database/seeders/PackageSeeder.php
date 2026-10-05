@@ -65,6 +65,10 @@ class PackageSeeder extends Seeder
             'enquiries',
             'media',
             'features',
+            // 2026-10-05: managers pick services and products on their
+            // own hotels too.
+            'services',
+            'products',
         ];
         $managerLimits = ['locations' => 0, 'hotels_per_location' => 3];
 

@@ -8,6 +8,8 @@ use App\Http\Resources\HotelResource;
 use App\Models\Admin;
 use App\Models\Hotel;
 use App\Models\Location;
+use App\Models\Product;
+use App\Models\Service;
 use App\Services\AccessService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -54,6 +56,20 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  * LocationController's docblock). A developer building a brand-new
  * package can still leave this uncapped by simply omitting a
  * `hotels_per_location` limit row.
+ *
+ * `serviceIds` (2026-10-05, client requirements doc item 6): a hotel's
+ * services are now picked from the shared App\Models\Service catalog
+ * instead of free text. `serviceIds` is pulled out of the validated
+ * payload before it reaches Hotel::create()/update() (it's a pivot,
+ * not a hotels column) and synced separately in store()/update(). On
+ * update(), the sync only runs if the request actually included
+ * `serviceIds` — omitting it leaves the hotel's current selection
+ * untouched, same "sometimes" PATCH semantics every other field here
+ * already has.
+ *
+ * `productIds` (2026-10-05, client requirements doc item 5): same
+ * pattern as `serviceIds` above, against the shared App\Models\Product
+ * catalog instead.
  */
 class HotelController extends Controller
 {
@@ -63,7 +79,7 @@ class HotelController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $hotels = Hotel::with('location')
+        $hotels = Hotel::with(['location', 'services', 'products'])
             ->get()
             ->filter(fn (Hotel $hotel) => $this->adminCanAccessHotel($request, $hotel->id))
             ->values();
@@ -75,12 +91,14 @@ class HotelController extends Controller
     {
         $this->authorizeScope($request, $hotel);
 
-        return response()->json(['hotel' => new HotelResource($hotel->load('location'))]);
+        return response()->json(['hotel' => new HotelResource($hotel->load(['location', 'services', 'products']))]);
     }
 
     public function store(Request $request): JsonResponse
     {
         $data = $this->validated($request);
+        $serviceIds = $this->extractServiceIds($data) ?? [];
+        $productIds = $this->extractProductIds($data) ?? [];
 
         $admin = $this->actingAdmin($request);
         if ($admin) {
@@ -88,20 +106,34 @@ class HotelController extends Controller
         }
 
         $hotel = Hotel::create($data);
+        $hotel->services()->sync($serviceIds);
+        $hotel->products()->sync($productIds);
 
         // Re-fetch so DB column defaults not present in $data (e.g.
         // status) are reflected in the response — Eloquent's create()
         // doesn't otherwise pick those up on the in-memory instance.
-        return response()->json(['hotel' => new HotelResource($hotel->refresh()->load('location'))], 201);
+        return response()->json(['hotel' => new HotelResource($hotel->refresh()->load(['location', 'services', 'products']))], 201);
     }
 
     public function update(Request $request, Hotel $hotel): JsonResponse
     {
         $this->authorizeScope($request, $hotel);
 
-        $hotel->update($this->validated($request, $hotel));
+        $data = $this->validated($request, $hotel);
+        $serviceIds = $this->extractServiceIds($data);
+        $productIds = $this->extractProductIds($data);
 
-        return response()->json(['hotel' => new HotelResource($hotel->load('location'))]);
+        $hotel->update($data);
+
+        if ($serviceIds !== null) {
+            $hotel->services()->sync($serviceIds);
+        }
+
+        if ($productIds !== null) {
+            $hotel->products()->sync($productIds);
+        }
+
+        return response()->json(['hotel' => new HotelResource($hotel->load(['location', 'services', 'products']))]);
     }
 
     public function destroy(Request $request, Hotel $hotel): JsonResponse
@@ -176,6 +208,10 @@ class HotelController extends Controller
             'nearbyLandmarks' => ['array'],
             'nearbyLandmarks.*.place' => ['required_with:nearbyLandmarks', 'string', 'max:255'],
             'nearbyLandmarks.*.distance' => ['required_with:nearbyLandmarks', 'string', 'max:100'],
+            'serviceIds' => ['sometimes', 'array'],
+            'serviceIds.*' => ['integer', Rule::exists(Service::class, 'id')],
+            'productIds' => ['sometimes', 'array'],
+            'productIds.*' => ['integer', Rule::exists(Product::class, 'id')],
             'checkInTime' => ['nullable', 'string', 'max:20'],
             'checkOutTime' => ['nullable', 'string', 'max:20'],
             'featured' => ['sometimes', 'boolean'],
@@ -191,6 +227,47 @@ class HotelController extends Controller
         }
 
         return $this->mapCamel($data);
+    }
+
+    /**
+     * Pops `serviceIds` out of an already-validated/mapCamel'd payload
+     * (it's a `hotel_service` pivot, not a column on `hotels`, so it
+     * can't go through Hotel::create()/update() directly). Returns
+     * `null` when the request didn't include it at all — callers use
+     * that to distinguish "leave the current selection alone" (update)
+     * from "set it" (always an array on create, defaulting to empty).
+     *
+     * @param  array<string, mixed>  $data
+     * @return list<int>|null
+     */
+    private function extractServiceIds(array &$data): ?array
+    {
+        if (! array_key_exists('serviceIds', $data)) {
+            return null;
+        }
+
+        $serviceIds = $data['serviceIds'];
+        unset($data['serviceIds']);
+
+        return $serviceIds;
+    }
+
+    /**
+     * Same as extractServiceIds() above, for the `hotel_product` pivot.
+     *
+     * @param  array<string, mixed>  $data
+     * @return list<int>|null
+     */
+    private function extractProductIds(array &$data): ?array
+    {
+        if (! array_key_exists('productIds', $data)) {
+            return null;
+        }
+
+        $productIds = $data['productIds'];
+        unset($data['productIds']);
+
+        return $productIds;
     }
 
     /**

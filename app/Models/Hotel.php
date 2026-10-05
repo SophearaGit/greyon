@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -81,5 +82,28 @@ class Hotel extends Model
     public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class);
+    }
+
+    /**
+     * Selected from the shared Service catalog — client requirements
+     * doc (2026-10-04), item 6, replacing the old free-text service
+     * input. See App\Models\Service's docblock.
+     *
+     * @return BelongsToMany<Service, $this>
+     */
+    public function services(): BelongsToMany
+    {
+        return $this->belongsToMany(Service::class);
+    }
+
+    /**
+     * Selected from the shared Product catalog — client requirements
+     * doc (2026-10-04), item 5. See App\Models\Product's docblock.
+     *
+     * @return BelongsToMany<Product, $this>
+     */
+    public function products(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class);
     }
 }

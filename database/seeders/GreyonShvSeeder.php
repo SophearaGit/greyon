@@ -7,6 +7,7 @@ use App\Models\Location;
 use App\Models\RatePlan;
 use App\Models\RoomType;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Real client property — Greyon Hotel & Serviced Apartment, Sihanoukville
@@ -22,10 +23,6 @@ use Illuminate\Database\Seeder;
  *     10.6253316, 103.5162819, confirmed against "Greyon Serviced
  *     Apartment Sihanouk Ville" on the map. The share link itself
  *     redirects to a full Maps URL carrying these same coordinates.
- *   - No real photos yet. Hotel + each room type use the same
- *     deterministic placeholder-photo pattern as HotelSeeder
- *     (picsum.photos/seed/<slug>) — swap for real photography via
- *     `PATCH /admin/hotels/{id}` / room-type admin whenever supplied.
  *   - No stated per-room occupancy (max adults/children). Inferred from
  *     bedroom/bunk counts (documented inline below) — confirm with the
  *     client and adjust via the admin panel if these don't match intent.
@@ -45,6 +42,40 @@ use Illuminate\Database\Seeder;
  *   - Monthly/long-stay rates: doc says to just show "Contact us for
  *     more information" — that's frontend copy (this repo has no
  *     frontend), so it's left as a `policies` note here instead.
+ *
+ * Real photos (2026-10-06): the client supplied a render/photo package
+ * for this property (folder `greyon-sihanoukville-imgs`), copied into
+ * `storage/app/public/hotels/greyon-shv/<room-slug>/NN.jpg` the same
+ * way as GreyonPhnomPenhSeeder — see `Storage::disk('public')->url()`
+ * usage in `seedRoom()` below. Hotel-level `hero_image`/`gallery` now
+ * use the real exterior/BBQ/sky-bar renders (`.../hotel/NN.jpg`)
+ * instead of picsum placeholders.
+ *
+ * The supplied photo folders weren't labeled with room-type slugs, so
+ * these mappings were confirmed with the client/project owner rather
+ * than guessed outright, given the real pricing tied to each category:
+ *   - "Sinble Bed" [sic] folder → the 1-Bedroom hotel rooms: codes
+ *     `1BB01F`/`1BB01R` (Balcony, two sampled units) → 1br-balcony;
+ *     `1BN01R1`/`1BN02R2` (no-balcony/Middle, two sampled units) →
+ *     1br-middle.
+ *   - "Double Beds" folder → the 2-Bedroom hotel rooms, same B/N
+ *     coding: `2BB01F`/`2BB01R` → 2br-balcony; `2BN01R1`/`2BN02R2` →
+ *     2br-middle.
+ *   - "4- Dormitary" folder → the two dorm rooms: "Dormitory 01" (4
+ *     photos, the wider-looking room with more bunk frames) →
+ *     dorm-8-bunk; "Dormitory 02" (2 photos) → dorm-4-bunk-balcony.
+ *     Confirmed with the client rather than inferred from bunk count
+ *     alone — the render angles made an exact count unreliable.
+ *   - No photos exist labeled for the 2-Bed Family Room (Middle/
+ *     Balcony). Per client confirmation, these reuse the same photos
+ *     as the plain 2-Bedroom Middle/Balcony rooms (2br-middle /
+ *     2br-balcony) since they appear to be the same physical room,
+ *     just sold under family occupancy/pricing — flagged here in case
+ *     the client later supplies Family-Room-specific photos.
+ *   - None of the 5 Serviced Apartment Suite types (Single/Double
+ *     Bedroom, Middle/Balcony, and the 3-bed Balcony variant) had any
+ *     photos in the supplied package — these keep the picsum
+ *     placeholder pattern below until real photography is supplied.
  */
 class GreyonShvSeeder extends Seeder
 {
@@ -68,12 +99,10 @@ class GreyonShvSeeder extends Seeder
                 'map_embed_url' => 'https://maps.app.goo.gl/NEc4GV6VBNboUsVH7',
                 'phone' => '+855 76 4938 886',
                 'email' => 'info@greyon.com.kh',
-                'hero_image' => 'https://picsum.photos/seed/greyon-shv/1600/900',
-                'gallery' => [
-                    'https://picsum.photos/seed/greyon-shv-2/1600/900',
-                    'https://picsum.photos/seed/greyon-shv-3/1600/900',
-                    'https://picsum.photos/seed/greyon-shv-4/1600/900',
-                ],
+                'hero_image' => Storage::disk('public')->url('hotels/greyon-shv/hotel/01.jpg'),
+                'gallery' => collect(range(2, 9))
+                    ->map(fn ($i) => Storage::disk('public')->url(sprintf('hotels/greyon-shv/hotel/%02d.jpg', $i)))
+                    ->all(),
                 'amenities' => [
                     'Free WiFi', 'Gym', "Kid's Playground", 'Billiard', 'Table Tennis',
                     'Parking Space', 'BBQ Kitchen', 'Rooftop Outdoor Space', '24/7 Security',
@@ -112,20 +141,27 @@ class GreyonShvSeeder extends Seeder
 
         // Section B: Hotel Rooms (nightly rates). Occupancy inferred from
         // bunk/bedroom counts — not stated in the source doc, confirm
-        // with the client.
+        // with the client. `photoFolder`/`photoCount`: real photos
+        // (2026-10-06) — see class docblock for how each folder was
+        // mapped. Family Room entries deliberately point at the same
+        // folders as the plain 2-Bedroom rooms (no dedicated Family
+        // Room photos exist yet).
         $hotelRooms = [
-            ['slug' => 'dorm-4-bunk-balcony', 'name' => 'Dormitory — 4-Bunkbed (Balcony)', 'bed_type' => '4 bunk beds', 'qty' => 1, 'rate' => 80, 'balcony' => true, 'adults' => 4, 'children' => 0, 'guests' => 4],
-            ['slug' => 'dorm-8-bunk', 'name' => 'Dormitory — 8-Bunkbed', 'bed_type' => '8 bunk beds', 'qty' => 1, 'rate' => 150, 'balcony' => false, 'adults' => 8, 'children' => 0, 'guests' => 8],
-            ['slug' => '1br-middle', 'name' => '1-Bedroom — Middle Room', 'bed_type' => '1 bedroom', 'qty' => 15, 'rate' => 40, 'balcony' => false, 'adults' => 2, 'children' => 1, 'guests' => 3],
-            ['slug' => '1br-balcony', 'name' => '1-Bedroom — Balcony Room', 'bed_type' => '1 bedroom', 'qty' => 7, 'rate' => 45, 'balcony' => true, 'adults' => 2, 'children' => 1, 'guests' => 3],
-            ['slug' => '2br-middle', 'name' => '2-Bedroom — Middle Room', 'bed_type' => '2 bedrooms', 'qty' => 8, 'rate' => 55, 'balcony' => false, 'adults' => 4, 'children' => 1, 'guests' => 5],
-            ['slug' => '2br-balcony', 'name' => '2-Bedroom — Balcony Room', 'bed_type' => '2 bedrooms', 'qty' => 4, 'rate' => 60, 'balcony' => true, 'adults' => 4, 'children' => 1, 'guests' => 5],
-            ['slug' => '2br-family-middle', 'name' => '2-Bed Family Room — Middle Room', 'bed_type' => '2 bedrooms (family)', 'qty' => 8, 'rate' => 70, 'balcony' => false, 'adults' => 4, 'children' => 2, 'guests' => 6],
-            ['slug' => '2br-family-balcony', 'name' => '2-Bed Family Room — Balcony Room', 'bed_type' => '2 bedrooms (family)', 'qty' => 4, 'rate' => 75, 'balcony' => true, 'adults' => 4, 'children' => 2, 'guests' => 6],
+            ['slug' => 'dorm-4-bunk-balcony', 'name' => 'Dormitory — 4-Bunkbed (Balcony)', 'bed_type' => '4 bunk beds', 'qty' => 1, 'rate' => 80, 'balcony' => true, 'adults' => 4, 'children' => 0, 'guests' => 4, 'photoFolder' => 'dorm-4-bunk-balcony', 'photoCount' => 2],
+            ['slug' => 'dorm-8-bunk', 'name' => 'Dormitory — 8-Bunkbed', 'bed_type' => '8 bunk beds', 'qty' => 1, 'rate' => 150, 'balcony' => false, 'adults' => 8, 'children' => 0, 'guests' => 8, 'photoFolder' => 'dorm-8-bunk', 'photoCount' => 4],
+            ['slug' => '1br-middle', 'name' => '1-Bedroom — Middle Room', 'bed_type' => '1 bedroom', 'qty' => 15, 'rate' => 40, 'balcony' => false, 'adults' => 2, 'children' => 1, 'guests' => 3, 'photoFolder' => '1br-middle', 'photoCount' => 3],
+            ['slug' => '1br-balcony', 'name' => '1-Bedroom — Balcony Room', 'bed_type' => '1 bedroom', 'qty' => 7, 'rate' => 45, 'balcony' => true, 'adults' => 2, 'children' => 1, 'guests' => 3, 'photoFolder' => '1br-balcony', 'photoCount' => 5],
+            ['slug' => '2br-middle', 'name' => '2-Bedroom — Middle Room', 'bed_type' => '2 bedrooms', 'qty' => 8, 'rate' => 55, 'balcony' => false, 'adults' => 4, 'children' => 1, 'guests' => 5, 'photoFolder' => '2br-middle', 'photoCount' => 3],
+            ['slug' => '2br-balcony', 'name' => '2-Bedroom — Balcony Room', 'bed_type' => '2 bedrooms', 'qty' => 4, 'rate' => 60, 'balcony' => true, 'adults' => 4, 'children' => 1, 'guests' => 5, 'photoFolder' => '2br-balcony', 'photoCount' => 6],
+            ['slug' => '2br-family-middle', 'name' => '2-Bed Family Room — Middle Room', 'bed_type' => '2 bedrooms (family)', 'qty' => 8, 'rate' => 70, 'balcony' => false, 'adults' => 4, 'children' => 2, 'guests' => 6, 'photoFolder' => '2br-middle', 'photoCount' => 3],
+            ['slug' => '2br-family-balcony', 'name' => '2-Bed Family Room — Balcony Room', 'bed_type' => '2 bedrooms (family)', 'qty' => 4, 'rate' => 75, 'balcony' => true, 'adults' => 4, 'children' => 2, 'guests' => 6, 'photoFolder' => '2br-balcony', 'photoCount' => 6],
         ];
 
         // Section C: Serviced Apartment Suites (nightly rates shown;
         // monthly/long-stay on request — see hotel `policies` above).
+        // No real photos exist for these yet (see class docblock) —
+        // still on the picsum placeholder pattern via seedRoom()'s
+        // fallback.
         $apartmentSuites = [
             ['slug' => 'suite-single-45-middle', 'name' => 'Serviced Apartment — Single Bedroom (Middle, 45 sqm)', 'bed_type' => '1 bedroom', 'size' => '45 sqm', 'qty' => 8, 'rate' => 80, 'balcony' => false, 'adults' => 2, 'children' => 1, 'guests' => 3],
             ['slug' => 'suite-single-50-balcony', 'name' => 'Serviced Apartment — Single Bedroom (Balcony, 50 sqm)', 'bed_type' => '1 bedroom', 'size' => '50 sqm', 'qty' => 8, 'rate' => 85, 'balcony' => true, 'adults' => 2, 'children' => 1, 'guests' => 3],
@@ -153,17 +189,26 @@ class GreyonShvSeeder extends Seeder
             $amenities[] = 'Private balcony';
         }
 
-        $seed = 'greyon-shv-'.$room['slug'];
+        if (isset($room['photoFolder'], $room['photoCount'])) {
+            $images = collect(range(1, $room['photoCount']))
+                ->map(fn ($i) => Storage::disk('public')->url(
+                    sprintf('hotels/greyon-shv/%s/%02d.jpg', $room['photoFolder'], $i)
+                ))
+                ->all();
+        } else {
+            $seed = 'greyon-shv-'.$room['slug'];
+            $images = [
+                "https://picsum.photos/seed/{$seed}/1200/800",
+                "https://picsum.photos/seed/{$seed}-2/1200/800",
+            ];
+        }
 
         $roomType = RoomType::updateOrCreate(
             ['hotel_id' => $hotel->id, 'slug' => $room['slug']],
             [
                 'name' => $room['name'],
                 'description' => $room['name'],
-                'images' => [
-                    "https://picsum.photos/seed/{$seed}/1200/800",
-                    "https://picsum.photos/seed/{$seed}-2/1200/800",
-                ],
+                'images' => $images,
                 'bed_type' => $room['bed_type'],
                 'room_size' => $roomSize,
                 'max_adults' => $room['adults'],

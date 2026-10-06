@@ -30,6 +30,9 @@ class DatabaseSeeder extends Seeder
         // Real client property (2026-09-29) — see GreyonShvSeeder's docblock.
         $this->call(GreyonShvSeeder::class);
 
+        // Real client property (2026-10-06) — see GreyonPhnomPenhSeeder's docblock.
+        $this->call(GreyonPhnomPenhSeeder::class);
+
         $this->call(AdminSeeder::class);
         $this->call(MediaSeeder::class);
         $this->call(NewsSeeder::class);

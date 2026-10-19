@@ -21,12 +21,17 @@ class DatabaseSeeder extends Seeder
         $this->call(PermissionSeeder::class);
         $this->call(PackageSeeder::class);
         $this->call(LocationSeeder::class);
+        $this->call(ServiceSeeder::class);
+        $this->call(ProductSeeder::class);
         $this->call(HotelSeeder::class);
         $this->call(RoomTypeSeeder::class);
         $this->call(RatePlanSeeder::class);
 
         // Real client property (2026-09-29) — see GreyonShvSeeder's docblock.
         $this->call(GreyonShvSeeder::class);
+
+        // Real client property (2026-10-06) — see GreyonPhnomPenhSeeder's docblock.
+        $this->call(GreyonPhnomPenhSeeder::class);
 
         $this->call(AdminSeeder::class);
         $this->call(MediaSeeder::class);

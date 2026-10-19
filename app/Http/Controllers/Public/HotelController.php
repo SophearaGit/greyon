@@ -18,7 +18,7 @@ class HotelController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $hotels = Hotel::with('location')
+        $hotels = Hotel::with(['location', 'services', 'products'])
             ->where('status', 'published')
             ->whereHas('location', fn ($query) => $query->where('status', 'published'))
             ->when($request->query('locationSlug'), function ($query, $locationSlug) {
@@ -33,7 +33,7 @@ class HotelController extends Controller
 
     public function show(string $slug): JsonResponse
     {
-        $hotel = Hotel::with('location')
+        $hotel = Hotel::with(['location', 'services', 'products'])
             ->where('slug', $slug)
             ->where('status', 'published')
             ->whereHas('location', fn ($query) => $query->where('status', 'published'))

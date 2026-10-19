@@ -16,9 +16,11 @@ use App\Http\Controllers\Admin\HotelController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\MediaItemController;
 use App\Http\Controllers\Admin\NewsController;
+use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\RateCalendarController;
 use App\Http\Controllers\Admin\RatePlanController;
 use App\Http\Controllers\Admin\RoomTypeController;
+use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\SiteSettingController;
 use App\Http\Controllers\Admin\TeamController;
 use App\Http\Controllers\StaffNotificationController;
@@ -98,6 +100,22 @@ Route::group(['middleware' => 'auth:admin,developer', 'prefix' => 'admin', 'as' 
         Route::get('/hotels/{hotel}', [HotelController::class, 'show'])->name('hotels.show');
         Route::patch('/hotels/{hotel}', [HotelController::class, 'update'])->name('hotels.update');
         Route::delete('/hotels/{hotel}', [HotelController::class, 'destroy'])->name('hotels.destroy');
+    });
+
+    Route::middleware('permission:services')->group(function () {
+        Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
+        Route::post('/services', [ServiceController::class, 'store'])->name('services.store');
+        Route::get('/services/{service}', [ServiceController::class, 'show'])->name('services.show');
+        Route::patch('/services/{service}', [ServiceController::class, 'update'])->name('services.update');
+        Route::delete('/services/{service}', [ServiceController::class, 'destroy'])->name('services.destroy');
+    });
+
+    Route::middleware('permission:products')->group(function () {
+        Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+        Route::post('/products', [ProductController::class, 'store'])->name('products.store');
+        Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
+        Route::patch('/products/{product}', [ProductController::class, 'update'])->name('products.update');
+        Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
     });
 
     Route::middleware('permission:rooms')->group(function () {

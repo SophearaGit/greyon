@@ -18,12 +18,15 @@ use Illuminate\Database\Seeder;
  * news article that referenced it (`angkor-golden-hour`) was removed
  * from NewsSeeder along with it.
  *
- * `phone`/`email` (2026-09-30): the client's "Destination Information"
- * doc gives Sihanoukville a real destination-level phone/email
- * (separate from the hotel's own phone/email, which GreyonShvSeeder
- * already sets) -- added here to match. Phnom Penh and Kampot are left
- * null: no real destination contact info exists for either yet, same
- * "don't seed placeholder data" reasoning HotelSeeder's docblock uses.
+ * `phone`/`email` (2026-09-30, Phnom Penh's phone added 2026-10-06):
+ * each destination's own "Destination Information" doc gives it its
+ * own real contact info, separate from its hotel's own phone/email
+ * (which the matching Greyon*Seeder already sets) — Sihanoukville's
+ * doc gave both phone and email, Phnom Penh's ("Greyon Serviced
+ * Apartment — Phnom Penh Branch" package, see GreyonPhnomPenhSeeder's
+ * docblock) gave a phone only, no email. Kampot is still left null:
+ * no real destination contact info exists for it yet, same "don't
+ * seed placeholder data" reasoning HotelSeeder's docblock uses.
  *
  * `hero_image`/`gallery` (2026-09-22, Round 12.2): the public-facing
  * site (greyon.site — a separate frontend, not in this repo) showed a
@@ -50,6 +53,7 @@ class LocationSeeder extends Seeder
             [
                 'name' => 'Phnom Penh',
                 'description' => 'The capital — riverside hotels, city tours, and business stays.',
+                'phone' => '+855 89 976 888',
                 'hero_image' => 'https://picsum.photos/seed/greyon-phnom-penh/1600/900',
                 'gallery' => [
                     'https://picsum.photos/seed/greyon-phnom-penh-2/1600/900',

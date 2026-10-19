@@ -32,7 +32,7 @@ class SiteSettingController extends Controller
     private function validated(Request $request): array
     {
         $data = $request->validate([
-            'siteName' => ['sometimes', 'string', 'max:255'],
+            'siteName' => ['sometimes', 'string', 'filled', 'max:255'],
             'defaultTitle' => ['sometimes', 'string', 'max:255'],
             'defaultDescription' => ['sometimes', 'string'],
             'ogImage' => ['sometimes', 'string', 'max:2048'],

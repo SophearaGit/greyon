@@ -17,6 +17,10 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 /**
  * Spec "Media" — perm `media`. URL-based library (upload storage TBD).
  * Assets attach to a destination and may optionally pin to a hotel.
+ *
+ * Access (product 2026-09-22): Managers keep scoped media when storage
+ * upgrades — list/create only within assigned locationIds / hotelIds.
+ * Do not regress to Admin/Developer-only.
  */
 class MediaItemController extends Controller
 {

@@ -21,7 +21,9 @@ class FeatureSeeder extends Seeder
             ['rates', 'Rates & availability', 'Inventory and nightly pricing'],
             ['bookings', 'Bookings', 'Reservation inbox / management'],
             ['news', 'News', 'News / blog CMS'],
-            ['media', 'Media library', 'Optional asset library add-on'],
+            // Managers get this feature (scoped). Product 2026-09-22: keep Manager
+            // access when Media moves to real object storage — not Admin-only.
+            ['media', 'Media library', 'Asset library (Managers: location/hotel scoped)'],
             ['enquiries', 'Enquiries', 'Contact form inbox'],
             ['settings', 'SEO / Settings', 'Site defaults and SEO'],
             ['users', 'People', 'Create managers & hotel desks; assign seats (roles) with location/hotel scope'],

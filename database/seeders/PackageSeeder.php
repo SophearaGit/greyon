@@ -54,6 +54,8 @@ class PackageSeeder extends Seeder
         // City manager seats — feature set taken from live Manager · *
         // rows (enquiries / media / features included; no public keys,
         // no users / settings). Destination create denied same as Admin.
+        // `media` is intentional: product (Seth, 2026-09-22) — Managers keep
+        // scoped Media when the library is fully built (not Admin-only).
         $managerFeatureKeys = [
             'dashboard',
             'locations',

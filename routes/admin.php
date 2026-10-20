@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\RoomTypeController;
 use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\SiteSettingController;
 use App\Http\Controllers\Admin\TeamController;
+use App\Http\Controllers\Admin\UploadController;
 use App\Http\Controllers\StaffNotificationController;
 use Illuminate\Support\Facades\Route;
 
@@ -182,6 +183,10 @@ Route::group(['middleware' => 'auth:admin,developer', 'prefix' => 'admin', 'as' 
         Route::get('/media/{mediaItem}', [MediaItemController::class, 'show'])->name('media.show');
         Route::patch('/media/{mediaItem}', [MediaItemController::class, 'update'])->name('media.update');
         Route::delete('/media/{mediaItem}', [MediaItemController::class, 'destroy'])->name('media.destroy');
+
+        // CMS image uploads (SPA ImageUpload field) -> public disk uploads/<folder>/
+        Route::post('/uploads', [UploadController::class, 'store'])->name('uploads.store');
+        Route::delete('/uploads', [UploadController::class, 'destroy'])->name('uploads.destroy');
     });
 
     Route::middleware('permission:settings')->group(function () {

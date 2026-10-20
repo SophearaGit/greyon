@@ -21,7 +21,16 @@ class Product extends Model
         'slug',
         'description',
         'icon',
+        'image_url',
+        'price',
+        'currency',
+        'sort_order',
         'status',
+    ];
+
+    protected $casts = [
+        'price' => 'decimal:2',
+        'sort_order' => 'integer',
     ];
 
     /**

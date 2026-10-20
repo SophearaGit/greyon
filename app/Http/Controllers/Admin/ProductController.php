@@ -2,63 +2,58 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Http\Controllers\Concerns\AuthorizesAdminPanel;
+use App\Http\Controllers\Concerns\ManagesCatalogItems;
+use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Services\AccessService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
- * Client requirements doc (2026-10-04), item 5 — "Products": a
- * developer/admin-managed catalog a hotel picks from (see
- * HotelController's `productIds`). Perm `products`
- * (`permission:products` on every route in routes/admin.php).
+ * Client requirements doc (2026-10-04), item 5 - "Products": a new
+ * admin-sidebar section; hotels select multiple products (many-to-many,
+ * see HotelController's `productIds`). Perm `products`.
  *
- * Deliberately a near-identical twin of ServiceController — same flat,
- * shared-catalog shape (not scoped to one location/hotel), same
- * store()/update()-feature-gated-only / destroy()-global-seat-only
- * split, same cascadeOnDelete pivot so deleting a product doesn't
- * check whether any hotel still references it. See ServiceController's
- * docblock for the full reasoning; it all applies here unchanged.
+ * The doc gives no field spec for a product. Implemented as an optional
+ * priced add-on (image/price/currency all nullable) - confirm with the
+ * client. Same shared-catalog / delete-is-global-seat-only rules as
+ * ServiceController.
  */
 class ProductController extends Controller
 {
     use AuthorizesAdminPanel;
+    use ManagesCatalogItems;
 
     public function __construct(private readonly AccessService $access) {}
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $products = Product::orderBy('name')->get();
+        $products = $this->catalogIndexQuery($request, Product::class)->get();
 
         return response()->json(['products' => ProductResource::collection($products)]);
     }
 
     public function show(Product $product): JsonResponse
     {
-        return response()->json(['product' => new ProductResource($product)]);
+        return response()->json(['product' => new ProductResource($product->loadCount('hotels'))]);
     }
 
     public function store(Request $request): JsonResponse
     {
         $product = Product::create($this->validated($request));
 
-        // Re-fetch so DB column defaults not present in the request
-        // (e.g. status) are reflected in the response — Eloquent's
-        // create() doesn't otherwise pick those up on the in-memory
-        // instance.
-        return response()->json(['product' => new ProductResource($product->refresh())], 201);
+        // refresh() so DB defaults (status, sort_order) are in the response.
+        return response()->json(['product' => new ProductResource($product->refresh()->loadCount('hotels'))], 201);
     }
 
     public function update(Request $request, Product $product): JsonResponse
     {
         $product->update($this->validated($request, $product));
 
-        return response()->json(['product' => new ProductResource($product)]);
+        return response()->json(['product' => new ProductResource($product->refresh()->loadCount('hotels'))]);
     }
 
     public function destroy(Request $request, Product $product): JsonResponse
@@ -75,17 +70,33 @@ class ProductController extends Controller
      */
     private function validated(Request $request, ?Product $product = null): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'name' => [$product ? 'sometimes' : 'required', 'string', 'max:255'],
             'slug' => [
-                $product ? 'sometimes' : 'required',
+                'sometimes',
+                'nullable',
                 'string',
                 'max:255',
+                'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
                 Rule::unique('products', 'slug')->ignore($product?->id),
             ],
             'description' => ['nullable', 'string'],
             'icon' => ['nullable', 'string', 'max:255'],
+            'imageUrl' => ['nullable', 'string', 'max:2048'],
+            'price' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
+            'currency' => ['nullable', 'string', 'size:3', 'alpha'],
+            'sortOrder' => ['sometimes', 'nullable', 'integer', 'min:0', 'max:65535'],
             'status' => ['sometimes', Rule::in(['draft', 'published', 'archived'])],
         ]);
+
+        if ($product && array_key_exists('slug', $data) && blank($data['slug'])) {
+            unset($data['slug']);
+        }
+
+        if (isset($data['currency'])) {
+            $data['currency'] = strtoupper($data['currency']);
+        }
+
+        return $this->normalizeCatalogPayload($data, Product::class, $product);
     }
 }

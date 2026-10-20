@@ -22,7 +22,12 @@ class Service extends Model
         'slug',
         'description',
         'icon',
+        'sort_order',
         'status',
+    ];
+
+    protected $casts = [
+        'sort_order' => 'integer',
     ];
 
     /**

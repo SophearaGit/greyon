@@ -18,7 +18,7 @@ class HotelController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $hotels = Hotel::with(['location', 'services', 'products'])
+        $hotels = Hotel::with($this->publicRelations())
             ->where('status', 'published')
             ->whereHas('location', fn ($query) => $query->where('status', 'published'))
             ->when($request->query('locationSlug'), function ($query, $locationSlug) {
@@ -33,12 +33,26 @@ class HotelController extends Controller
 
     public function show(string $slug): JsonResponse
     {
-        $hotel = Hotel::with(['location', 'services', 'products'])
+        $hotel = Hotel::with($this->publicRelations())
             ->where('slug', $slug)
             ->where('status', 'published')
             ->whereHas('location', fn ($query) => $query->where('status', 'published'))
             ->firstOrFail();
 
         return response()->json(['hotel' => new HotelResource($hotel)]);
+    }
+
+    /**
+     * Only published catalog items are exposed publicly (a draft or
+     * archived service/product stays attached to the hotel but hidden),
+     * ordered the way admins arranged them.
+     *
+     * @return array<int|string, mixed>
+     */
+    private function publicRelations(): array
+    {
+        $published = fn ($query) => $query->where('status', 'published')->orderBy('sort_order')->orderBy('name');
+
+        return ['location', 'services' => $published, 'products' => $published];
     }
 }

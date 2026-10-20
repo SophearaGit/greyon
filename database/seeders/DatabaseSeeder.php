@@ -15,6 +15,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Copy committed seed photos onto the public disk first.
+        $this->call(SeedAssetsSeeder::class);
+
         $this->call(DeveloperSeeder::class);
         $this->call(RoleSeeder::class);
         $this->call(FeatureSeeder::class);

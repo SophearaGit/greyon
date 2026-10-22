@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Location;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Seeds the 3 live destinations: Phnom Penh, Kampot, Sihanoukville.
@@ -43,9 +44,36 @@ use Illuminate\Database\Seeder;
  * already exist in a real database — an admin's own edits afterward
  * (via `PATCH /admin/locations/:id`) still take precedence over the
  * *next* deploy only if this seeder isn't re-run against that row.
+ *
+ * Real photos (2026-10-22): the picsum placeholders above were replaced
+ * with free-licensed Wikimedia Commons photos committed under
+ * database/seeders/assets/locations/<slug>/ (credits in CREDITS.md there),
+ * copied to the public disk by SeedAssetsSeeder and referenced via
+ * Storage::disk('public')->url() like the hotel seeders. images() is also
+ * used by the greyon:sync-content command.
  */
 class LocationSeeder extends Seeder
 {
+    public const GALLERY_COUNT = 3;
+
+    /**
+     * hero_image + gallery for a destination slug, as public-disk URLs.
+     *
+     * @return array{hero_image: string, gallery: list<string>}
+     */
+    public static function images(string $slug): array
+    {
+        $disk = Storage::disk('public');
+
+        return [
+            'hero_image' => $disk->url("locations/{$slug}/hero.jpg"),
+            'gallery' => array_map(
+                fn (int $i) => $disk->url("locations/{$slug}/gallery-{$i}.jpg"),
+                range(1, self::GALLERY_COUNT)
+            ),
+        ];
+    }
+
     public function run(): void
     {
         Location::updateOrCreate(
@@ -54,11 +82,7 @@ class LocationSeeder extends Seeder
                 'name' => 'Phnom Penh',
                 'description' => 'The capital — riverside hotels, city tours, and business stays.',
                 'phone' => '+855 89 976 888',
-                'hero_image' => 'https://picsum.photos/seed/greyon-phnom-penh/1600/900',
-                'gallery' => [
-                    'https://picsum.photos/seed/greyon-phnom-penh-2/1600/900',
-                    'https://picsum.photos/seed/greyon-phnom-penh-3/1600/900',
-                ],
+                ...self::images('phnom-penh'),
                 'highlights' => ['Riverside promenade', 'Royal Palace', 'Central Market'],
                 'status' => 'published',
                 'seo_title' => 'Hotels in Phnom Penh | Greyon',
@@ -71,11 +95,7 @@ class LocationSeeder extends Seeder
             [
                 'name' => 'Kampot',
                 'description' => 'Riverside charm, pepper farms, and a slower pace on the coast.',
-                'hero_image' => 'https://picsum.photos/seed/greyon-kampot/1600/900',
-                'gallery' => [
-                    'https://picsum.photos/seed/greyon-kampot-2/1600/900',
-                    'https://picsum.photos/seed/greyon-kampot-3/1600/900',
-                ],
+                ...self::images('kampot'),
                 'highlights' => ['Kampot riverside', 'Pepper farms', 'Bokor Mountain'],
                 'status' => 'published',
                 'seo_title' => 'Hotels in Kampot | Greyon',
@@ -90,11 +110,7 @@ class LocationSeeder extends Seeder
                 'description' => 'Beach town gateway to Cambodia\'s southern islands.',
                 'phone' => '+855 76 4938 886',
                 'email' => 'info@greyon.com.kh',
-                'hero_image' => 'https://picsum.photos/seed/greyon-sihanoukville/1600/900',
-                'gallery' => [
-                    'https://picsum.photos/seed/greyon-sihanoukville-2/1600/900',
-                    'https://picsum.photos/seed/greyon-sihanoukville-3/1600/900',
-                ],
+                ...self::images('sihanoukville'),
                 'highlights' => ['Otres Beach', 'Island ferries', 'Ream National Park'],
                 'status' => 'published',
                 'seo_title' => 'Hotels in Sihanoukville | Greyon',

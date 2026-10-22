@@ -192,7 +192,7 @@ class GreyonPhnomPenhSeeder extends Seeder
                     'max_children' => $room['children'],
                     'max_guests' => $room['guests'],
                     'amenities' => $amenities,
-                    'status' => 'draft',
+                    'status' => 'published',
                 ]
             );
         }
@@ -226,7 +226,7 @@ class GreyonPhnomPenhSeeder extends Seeder
                     'max_children' => 1,
                     'max_guests' => 5,
                     'amenities' => $amenities,
-                    'status' => 'draft',
+                    'status' => 'published',
                 ]
             );
         }

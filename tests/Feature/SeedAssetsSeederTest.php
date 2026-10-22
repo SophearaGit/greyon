@@ -17,6 +17,9 @@ class SeedAssetsSeederTest extends TestCase
         Storage::disk('public')->assertExists('hotels/greyon-pp/2br-80sqm-layout-a/01.jpg');
         Storage::disk('public')->assertExists('hotels/greyon-pp/2br-80sqm-layout-a/10.jpg');
         Storage::disk('public')->assertExists('hotels/greyon-pp/2br-80sqm-layout-b/15.jpg');
+        Storage::disk('public')->assertExists('hotels/greyon-shv/hotel/01.jpg');
+        Storage::disk('public')->assertExists('hotels/greyon-shv/dorm-8-bunk/04.jpg');
+        $this->assertCount(57, Storage::disk('public')->allFiles('hotels'));
     }
 
     public function test_is_idempotent_and_does_not_overwrite_matching_files(): void

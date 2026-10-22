@@ -45,7 +45,8 @@ use Illuminate\Support\Facades\Storage;
  *
  * Real photos (2026-10-06): the client supplied a render/photo package
  * for this property (folder `greyon-sihanoukville-imgs`), copied into
- * `storage/app/public/hotels/greyon-shv/<room-slug>/NN.jpg` the same
+ * `database/seeders/assets/hotels/greyon-shv/<room-slug>/NN.jpg` (synced to
+ * the public disk by SeedAssetsSeeder) the same
  * way as GreyonPhnomPenhSeeder — see `Storage::disk('public')->url()`
  * usage in `seedRoom()` below. Hotel-level `hero_image`/`gallery` now
  * use the real exterior/BBQ/sky-bar renders (`.../hotel/NN.jpg`)

@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\Auth\VerifyEmailController;
 use App\Http\Controllers\Admin\AvailabilityController;
 use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\EnquiryController;
+use App\Http\Controllers\Admin\HeroSlideController;
 use App\Http\Controllers\Admin\HotelController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\MediaItemController;
@@ -192,6 +193,14 @@ Route::group(['middleware' => 'auth:admin,developer', 'prefix' => 'admin', 'as' 
     Route::middleware('permission:settings')->group(function () {
         Route::get('/settings', [SiteSettingController::class, 'show'])->name('settings.show');
         Route::patch('/settings', [SiteSettingController::class, 'update'])->name('settings.update');
+
+        // Home-page hero slides (image = path from POST /admin/uploads).
+        Route::get('/hero-slides', [HeroSlideController::class, 'index'])->name('hero-slides.index');
+        Route::post('/hero-slides', [HeroSlideController::class, 'store'])->name('hero-slides.store');
+        Route::post('/hero-slides/reorder', [HeroSlideController::class, 'reorder'])->name('hero-slides.reorder');
+        Route::get('/hero-slides/{heroSlide}', [HeroSlideController::class, 'show'])->name('hero-slides.show');
+        Route::patch('/hero-slides/{heroSlide}', [HeroSlideController::class, 'update'])->name('hero-slides.update');
+        Route::delete('/hero-slides/{heroSlide}', [HeroSlideController::class, 'destroy'])->name('hero-slides.destroy');
     });
 
     // People — org admin assigns manager / hotel desks (seats = packages-as-roles).

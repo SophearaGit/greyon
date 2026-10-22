@@ -4,6 +4,7 @@ use App\Http\Controllers\Public\AvailabilityController;
 use App\Http\Controllers\Public\BookingController;
 use App\Http\Controllers\Public\CatalogController;
 use App\Http\Controllers\Public\EnquiryController;
+use App\Http\Controllers\Public\HeroSlideController;
 use App\Http\Controllers\Public\HotelController;
 use App\Http\Controllers\Public\LocationController;
 use App\Http\Controllers\Public\NewsController;
@@ -41,3 +42,5 @@ Route::get('/news/{slug}', [NewsController::class, 'show'])->name('public.news.s
 Route::post('/enquiries', [EnquiryController::class, 'store'])->name('public.enquiries.store');
 
 Route::get('/settings', SiteSettingController::class)->name('public.settings');
+
+Route::get('/hero-slides', [HeroSlideController::class, 'index'])->name('public.hero-slides.index');

@@ -32,8 +32,7 @@ IS_LARAVEL = "true"
 set -e
 
 mkdir -p /app/storage/framework/{cache,sessions,views} /app/storage/logs /app/bootstrap/cache
-chown -R www-data:www-data /app/storage /app/bootstrap/cache
-chmod -R 775 /app/storage /app/bootstrap/cache
+mkdir -p /app/storage/app/public /app/storage/app/private
 
 # Optional first-boot migrate (set RUN_MIGRATIONS=true in Coolify env)
 # Prefer Coolify Post-deployment: `php artisan migrate --force`
@@ -42,6 +41,13 @@ chmod -R 775 /app/storage /app/bootstrap/cache
 if [ "${RUN_MIGRATIONS:-false}" = "true" ]; then
   php /app/artisan migrate --force --no-interaction || true
 fi
+
+# Sync committed seed images (database/seeders/assets) into the persistent
+# public disk volume. Idempotent: copies missing/changed files, never deletes.
+php /app/artisan db:seed --class='Database\Seeders\SeedAssetsSeeder' --force --no-interaction || true
+
+chown -R www-data:www-data /app/storage /app/bootstrap/cache
+chmod -R 775 /app/storage /app/bootstrap/cache
 
 php /app/artisan storage:link --force --no-interaction || true
 php /app/artisan config:cache --no-interaction || true

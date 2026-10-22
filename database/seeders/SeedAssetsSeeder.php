@@ -11,8 +11,9 @@ use Illuminate\Support\Facades\Storage;
  * public disk at the same relative path (e.g. hotels/greyon-pp/...), so
  * URLs built by the hotel seeders resolve on fresh deploys.
  *
- * Idempotent: only writes files that are missing or differ in size.
- * Never deletes. A missing assets directory is not an error.
+ * Idempotent: only writes files that are missing or whose contents differ
+ * (size, then sha1). Never deletes. Never touches uploads/. A missing
+ * assets directory is not an error.
  */
 class SeedAssetsSeeder extends Seeder
 {
@@ -33,7 +34,12 @@ class SeedAssetsSeeder extends Seeder
         foreach (File::allFiles($sourceDir) as $file) {
             $relative = str_replace('\\', '/', $file->getRelativePathname());
 
-            if ($disk->exists($relative) && $disk->size($relative) === $file->getSize()) {
+            // User uploads live on the same disk; seed assets must never touch them.
+            if ($relative === 'uploads' || str_starts_with($relative, 'uploads/')) {
+                continue;
+            }
+
+            if ($disk->exists($relative) && ! $this->differs($disk->path($relative), $file->getPathname())) {
                 $skipped++;
 
                 continue;
@@ -48,5 +54,14 @@ class SeedAssetsSeeder extends Seeder
         }
 
         $this->command?->info("SeedAssetsSeeder: copied {$copied}, already present {$skipped}.");
+    }
+
+    private function differs(string $target, string $source): bool
+    {
+        if (! is_file($target) || filesize($target) !== filesize($source)) {
+            return true;
+        }
+
+        return sha1_file($target) !== sha1_file($source);
     }
 }

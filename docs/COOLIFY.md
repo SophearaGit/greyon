@@ -127,13 +127,17 @@ Workflow: `.github/workflows/ci.yml`
 
 ---
 
-## 5. Persistent storage (recommended)
+## 5. Persistent storage (required)
 
-Mount a volume for uploads if you use `storage/app/public`:
+Mount a persistent volume at `/app/storage/app` (Coolify -> Storage; keep the existing volume name). It holds user uploads (`storage/app/public/uploads`) and the seed images.
 
-- Coolify Storage → mount `/app/storage/app` (or `/app/storage`)
+Because the volume masks anything committed under `storage/app`, seed images live in `database/seeders/assets/` (e.g. `hotels/greyon-shv/...`). On every boot `start.sh` runs `php artisan db:seed --class='Database\Seeders\SeedAssetsSeeder' --force`, which copies missing/changed files onto the public disk (never deletes, never touches `uploads/`), then fixes ownership and runs `storage:link`.
 
-`php artisan storage:link` already runs in `nixpacks.toml` start.sh.
+Verify after deploy:
+
+```bash
+curl -I https://engine.greyon.site/storage/hotels/greyon-shv/hotel/01.jpg   # expect 200, image/jpeg
+```
 
 ---
 

@@ -193,8 +193,10 @@ Route::group(['middleware' => 'auth:admin,developer', 'prefix' => 'admin', 'as' 
     Route::middleware('permission:settings')->group(function () {
         Route::get('/settings', [SiteSettingController::class, 'show'])->name('settings.show');
         Route::patch('/settings', [SiteSettingController::class, 'update'])->name('settings.update');
+    });
 
-        // Home-page hero slides (image = path from POST /admin/uploads).
+    // Home-page hero slides (image = path from POST /admin/uploads).
+    Route::middleware('permission:hero_slides')->group(function () {
         Route::get('/hero-slides', [HeroSlideController::class, 'index'])->name('hero-slides.index');
         Route::post('/hero-slides', [HeroSlideController::class, 'store'])->name('hero-slides.store');
         Route::post('/hero-slides/reorder', [HeroSlideController::class, 'reorder'])->name('hero-slides.reorder');

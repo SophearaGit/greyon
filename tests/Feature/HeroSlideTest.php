@@ -2,9 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Models\Admin;
 use App\Models\Developer;
+use App\Models\Feature;
 use App\Models\HeroSlide;
+use App\Models\Package;
 use Database\Seeders\HeroSlideSeeder;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -24,6 +28,25 @@ class HeroSlideTest extends TestCase
     private function dev(): Developer
     {
         return Developer::factory()->make(['id' => 1]);
+    }
+
+    /**
+     * Unsaved admin whose packages/features relations are preloaded, so
+     * AccessService::can() works without the (MySQL-only) package tables.
+     *
+     * @param  list<list<string>>  $packages  feature keys per package
+     */
+    private function admin(array $packages): Admin
+    {
+        $admin = Admin::factory()->make(['id' => 1]);
+
+        return $admin->setRelation('packages', new EloquentCollection(array_map(
+            fn (array $keys) => (new Package)->setRelation('features', new EloquentCollection(array_map(
+                fn (string $key) => new Feature(['key' => $key]),
+                $keys
+            ))),
+            $packages
+        )));
     }
 
     private function slide(array $attrs = []): HeroSlide
@@ -74,6 +97,41 @@ class HeroSlideTest extends TestCase
         $this->deleteJson("/admin/hero-slides/{$s->id}")->assertUnauthorized();
         $this->postJson('/admin/hero-slides/reorder', ['ids' => [$s->id]])->assertUnauthorized();
         $this->assertSame(1, HeroSlide::count());
+    }
+
+    public function test_developer_has_access(): void
+    {
+        $this->slide();
+        $this->actingAs($this->dev(), 'developer')->getJson('/admin/hero-slides')->assertOk();
+    }
+
+    public function test_admin_with_hero_slides_package_has_access(): void
+    {
+        $s = $this->slide();
+        $this->actingAs($this->admin([['dashboard', 'hero_slides']]), 'admin');
+
+        $this->getJson('/admin/hero-slides')->assertOk();
+        $this->patchJson("/admin/hero-slides/{$s->id}", ['title' => 'y'])->assertOk();
+        $this->postJson('/admin/hero-slides/reorder', ['ids' => [$s->id]])->assertOk();
+    }
+
+    public function test_admin_with_only_settings_is_forbidden(): void
+    {
+        $s = $this->slide();
+        $this->actingAs($this->admin([['settings']]), 'admin');
+
+        $this->getJson('/admin/hero-slides')->assertForbidden();
+        $this->postJson('/admin/hero-slides', ['title' => 'x', 'image' => 'uploads/x.jpg'])->assertForbidden();
+        $this->deleteJson("/admin/hero-slides/{$s->id}")->assertForbidden();
+        $this->assertSame(1, HeroSlide::count());
+    }
+
+    public function test_admin_without_package_is_forbidden(): void
+    {
+        $this->actingAs($this->admin([]), 'admin');
+
+        $this->getJson('/admin/hero-slides')->assertForbidden();
+        $this->postJson('/admin/hero-slides', ['title' => 'x', 'image' => 'uploads/x.jpg'])->assertForbidden();
     }
 
     public function test_admin_crud(): void

@@ -37,6 +37,9 @@ class FeatureSeeder extends Seeder
             // selectable Products catalog for the hotel form (same
             // many-to-many pattern as Services).
             ['products', 'Products', 'Selectable product catalog for hotels'],
+            // Appended 2026-10-22: home-page hero slider, its own seat
+            // feature instead of riding on `settings`.
+            ['hero_slides', 'Hero slides', 'Home page hero slider'],
         ];
 
         foreach ($adminParents as $i => [$key, $label, $description]) {
